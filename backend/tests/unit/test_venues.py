@@ -1,5 +1,11 @@
 import pytest
 
+from pubscout.services.osm_service import (
+    OverpassApiError,
+    OverpassRateLimitError,
+    OverpassTimeoutError,
+)
+
 
 @pytest.mark.asyncio
 async def test_list_venues_requires_lat_lng(client):
@@ -64,3 +70,28 @@ async def test_list_venues_validates_radius_range(client):
 
     response = await client.get("/venues?lat=52.52&lng=13.405&radius_km=51")
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_list_venues_returns_504_on_overpass_timeout(client, mock_osm_service):
+    mock_osm_service.fetch_venues.side_effect = OverpassTimeoutError("timed out")
+
+    response = await client.get("/venues?lat=52.52&lng=13.405")
+    assert response.status_code == 504
+    assert "retry" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_list_venues_returns_429_on_rate_limit(client, mock_osm_service):
+    mock_osm_service.fetch_venues.side_effect = OverpassRateLimitError("rate limit")
+
+    response = await client.get("/venues?lat=52.52&lng=13.405")
+    assert response.status_code == 429
+
+
+@pytest.mark.asyncio
+async def test_list_venues_returns_502_on_api_error(client, mock_osm_service):
+    mock_osm_service.fetch_venues.side_effect = OverpassApiError("server error")
+
+    response = await client.get("/venues?lat=52.52&lng=13.405")
+    assert response.status_code == 502

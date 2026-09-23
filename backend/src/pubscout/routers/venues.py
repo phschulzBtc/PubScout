@@ -1,8 +1,18 @@
+import logging
+
 from fastapi import APIRouter, Query, Request
+from fastapi.responses import JSONResponse
 
 from pubscout.config import settings
 from pubscout.schemas.venue import VenueResponse
-from pubscout.services.osm_service import OsmService
+from pubscout.services.osm_service import (
+    OsmService,
+    OverpassApiError,
+    OverpassRateLimitError,
+    OverpassTimeoutError,
+)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/venues", tags=["venues"])
 
@@ -33,4 +43,22 @@ async def list_venues(
         if activities
         else None
     )
-    return await osm_service.fetch_venues(lat, lng, radius_km, activity_list)
+    try:
+        return await osm_service.fetch_venues(lat, lng, radius_km, activity_list)
+    except OverpassRateLimitError:
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Overpass API rate limit exceeded, please retry"},
+        )
+    except OverpassTimeoutError:
+        logger.warning("Overpass API timed out for lat=%s lng=%s", lat, lng)
+        return JSONResponse(
+            status_code=504,
+            content={"detail": "Overpass API timed out, please retry"},
+        )
+    except OverpassApiError as exc:
+        logger.error("Overpass API error: %s", exc)
+        return JSONResponse(
+            status_code=502,
+            content={"detail": "Overpass API unavailable, please retry"},
+        )
