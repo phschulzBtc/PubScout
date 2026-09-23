@@ -192,14 +192,15 @@ async def test_fetch_venues_returns_parsed_venues(make_client):
     assert venues[0].activities[0].icon == "darts"
 
 
-async def test_fetch_venues_without_filter_queries_all_activities(make_client):
+async def test_fetch_venues_without_filter_queries_all_bars(make_client):
     queries: list[str] = []
     service = OsmService(make_client(_recording_handler(queries)))
 
     await service.fetch_venues(52.52, 13.405, radius_km=1.0)
 
-    assert "darts" in queries[0]
-    assert "billiards" in queries[0]
+    # Without filter, queries all bars/pubs without activity tag constraints
+    assert 'amenity' in queries[0]
+    assert "darts" not in queries[0]
 
 
 async def test_fetch_venues_with_filter_queries_only_requested_activities(
@@ -214,15 +215,23 @@ async def test_fetch_venues_with_filter_queries_only_requested_activities(
     assert "darts" not in queries[0]
 
 
-@pytest.mark.parametrize("activities", [[], ["bowling"]])
-async def test_fetch_venues_without_known_activities_skips_request(
-    make_client, activities
-):
+async def test_fetch_venues_with_empty_list_queries_all_bars(make_client):
+    queries: list[str] = []
+    service = OsmService(make_client(_recording_handler(queries)))
+
+    await service.fetch_venues(52.52, 13.405, radius_km=1.0, activities=[])
+
+    # Empty list treated same as no filter
+    assert len(queries) == 1
+    assert "darts" not in queries[0]
+
+
+async def test_fetch_venues_with_unknown_activities_skips_request(make_client):
     queries: list[str] = []
     service = OsmService(make_client(_recording_handler(queries)))
 
     venues = await service.fetch_venues(
-        52.52, 13.405, radius_km=1.0, activities=activities
+        52.52, 13.405, radius_km=1.0, activities=["bowling"]
     )
 
     assert venues == []
