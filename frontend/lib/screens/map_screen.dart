@@ -55,15 +55,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  void _goToUserLocation() {
-    final userLocation = ref.read(userLocationProvider);
-    userLocation.whenData((location) {
-      _mapController.move(location, _mapController.camera.zoom);
-      ref.read(venueFilterProvider.notifier).update(
-            lat: location.latitude,
-            lng: location.longitude,
-          );
-    });
+  Future<void> _goToUserLocation() async {
+    final service = ref.read(locationServiceProvider);
+    final location = await service.getCurrentLocation();
+    _mapController.move(location, defaultZoomLevel);
+    ref.read(venueFilterProvider.notifier).update(
+          lat: location.latitude,
+          lng: location.longitude,
+        );
   }
 
   @override
