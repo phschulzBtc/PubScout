@@ -1,6 +1,6 @@
 # Feature 008: Aktivitäts-Filter
 
-## Status: draft
+## Status: done
 ## Owner: Dev B (Frontend)
 ## Depends on: 006, 007
 
@@ -8,14 +8,14 @@
 Als Nutzer möchte ich nach bestimmten Aktivitäten filtern können, damit ich nur Bars sehe die meine gewünschte Aktivität anbieten.
 
 ## Akzeptanzkriterien
-- [ ] Filter-Leiste über oder unter der Karte
-- [ ] Filter als Chips/Toggles für jeden Aktivitätstyp
-- [ ] Mehrfachauswahl möglich (z.B. Darts UND Billard)
-- [ ] Keine Auswahl = alle Venues anzeigen
-- [ ] Filter-Änderung löst sofort neuen API-Call aus
-- [ ] Aktive Filter sind visuell hervorgehoben
-- [ ] Anzahl der Ergebnisse wird angezeigt
-- [ ] Widget-Tests für Filter-Komponente
+- [x] Filter-Leiste zwischen AppBar und Karte (horizontal scrollbar)
+- [x] FilterChips mit Activity-Icon und Name
+- [x] Mehrfachauswahl möglich (Toggle on/off)
+- [x] Keine Auswahl = alle Venues anzeigen
+- [x] Filter-Änderung aktualisiert venueFilterProvider → neuer API-Call
+- [x] Aktive Filter visuell hervorgehoben (primaryContainer Farbe)
+- [x] Anzahl Ergebnisse + aktive Filter in AppBar ("5 Venues (2 Filter)")
+- [x] Widget-Tests: Chips rendern, select, deselect, multi-select (34 Tests gesamt)
 
 ## UI/UX
 - Horizontale scrollbare Chip-Leiste
