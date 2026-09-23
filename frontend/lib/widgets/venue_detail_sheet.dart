@@ -1,12 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/theme.dart';
 import '../models/venue.dart';
+import '../providers/favorites_provider.dart';
 
-class VenueDetailSheet extends StatelessWidget {
+class VenueDetailSheet extends ConsumerWidget {
   final Venue venue;
   final double? userLat;
   final double? userLng;
@@ -19,7 +21,7 @@ class VenueDetailSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -53,100 +55,8 @@ class VenueDetailSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // Header: icon + name
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [pubScoutGreen, pubScoutGreenDark],
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.sports_bar,
-                            color: Colors.white, size: 26),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(venue.name,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w700)),
-                            if (venue.address.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Text(venue.address,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant)),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Activity chips
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: venue.activities
-                        .map((a) => Chip(
-                              label: Text(a.name,
-                                  style: const TextStyle(fontSize: 13)),
-                              backgroundColor:
-                                  pubScoutGreen.withValues(alpha: 0.1),
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                            ))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Info cards
-                  Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        if (userLat != null && userLng != null)
-                          _InfoTile(
-                            icon: Icons.near_me,
-                            label: 'Entfernung',
-                            value: _formatDistance(_distanceKm(
-                                userLat!, userLng!, venue.latitude,
-                                venue.longitude)),
-                            showDivider: venue.openingHours.isNotEmpty,
-                          ),
-                        if (venue.openingHours.isNotEmpty)
-                          _InfoTile(
-                            icon: Icons.schedule,
-                            label: 'Öffnungszeiten',
-                            value: venue.openingHours,
-                            showDivider: false,
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Route button
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () => _openRoute(venue),
-                      icon: const Icon(Icons.directions),
-                      label: const Text('Route planen'),
-                    ),
-                  ),
+                  ...buildContentChildren(context, ref, venue,
+                      userLat: userLat, userLng: userLng),
                 ],
               ),
             ),
@@ -156,12 +66,144 @@ class VenueDetailSheet extends StatelessWidget {
     );
   }
 
-  String _formatDistance(double km) {
+  /// Shared content builder usable in both bottom sheet and side panel.
+  static Widget buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    Venue venue, {
+    double? userLat,
+    double? userLng,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: buildContentChildren(context, ref, venue,
+          userLat: userLat, userLng: userLng),
+    );
+  }
+
+  static List<Widget> buildContentChildren(
+    BuildContext context,
+    WidgetRef ref,
+    Venue venue, {
+    double? userLat,
+    double? userLng,
+  }) {
+    final theme = Theme.of(context);
+    final favList = ref.watch(favoritesProvider).value;
+    final isFavorite = favList?.any((v) => v.osmId == venue.osmId) ?? false;
+
+    return [
+      // Header: icon + name + favorite
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [pubScoutGreen, pubScoutGreenDark],
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.sports_bar,
+                color: Colors.white, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(venue.name,
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+                if (venue.address.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(venue.address,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant)),
+                ],
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color:
+                  isFavorite ? pubScoutCoral : theme.colorScheme.outline,
+            ),
+            onPressed: () =>
+                ref.read(favoritesProvider.notifier).toggle(venue),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+
+      // Activity chips
+      Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: venue.activities
+            .map((a) => Chip(
+                  label:
+                      Text(a.name, style: const TextStyle(fontSize: 13)),
+                  backgroundColor:
+                      pubScoutGreen.withValues(alpha: 0.1),
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ))
+            .toList(),
+      ),
+      const SizedBox(height: 16),
+
+      // Info cards
+      Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            if (userLat != null && userLng != null)
+              _InfoTile(
+                icon: Icons.near_me,
+                label: 'Entfernung',
+                value: _formatDistance(_distanceKm(
+                    userLat, userLng, venue.latitude, venue.longitude)),
+                showDivider: venue.openingHours.isNotEmpty,
+              ),
+            if (venue.openingHours.isNotEmpty)
+              _InfoTile(
+                icon: Icons.schedule,
+                label: 'Öffnungszeiten',
+                value: venue.openingHours,
+                showDivider: false,
+              ),
+          ],
+        ),
+      ),
+
+      const SizedBox(height: 24),
+
+      // Route button
+      SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: () => _openRoute(venue),
+          icon: const Icon(Icons.directions),
+          label: const Text('Route planen'),
+        ),
+      ),
+    ];
+  }
+
+  static String _formatDistance(double km) {
     if (km < 1) return '${(km * 1000).round()} m';
     return '${km.toStringAsFixed(1)} km';
   }
 
-  double _distanceKm(double lat1, double lng1, double lat2, double lng2) {
+  static double _distanceKm(
+      double lat1, double lng1, double lat2, double lng2) {
     const earthRadiusKm = 6371.0;
     final dLat = _toRadians(lat2 - lat1);
     final dLng = _toRadians(lng2 - lng1);
@@ -174,9 +216,9 @@ class VenueDetailSheet extends StatelessWidget {
     return earthRadiusKm * c;
   }
 
-  double _toRadians(double degrees) => degrees * pi / 180;
+  static double _toRadians(double degrees) => degrees * pi / 180;
 
-  Future<void> _openRoute(Venue venue) async {
+  static Future<void> _openRoute(Venue venue) async {
     final uri = Uri.parse(
       'https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}',
     );
@@ -205,7 +247,8 @@ class _InfoTile extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Icon(icon, size: 20, color: pubScoutGreen),
@@ -214,8 +257,8 @@ class _InfoTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant)),
                   Text(value, style: theme.textTheme.bodyMedium),
                 ],
               ),
