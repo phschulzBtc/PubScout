@@ -127,9 +127,13 @@ class OsmService:
         radius_km: float,
         activities: list[str] | None = None,
     ) -> list[VenueResponse]:
-        requested = _resolve_activities(activities)
-        if not requested:
-            return []
+        # When filtering, resolve requested activities; unknown icons → empty
+        if activities:
+            requested = _resolve_activities(activities)
+            if not requested:
+                return []
+        else:
+            requested = None
         if self._cache is None:
             return await self._query_overpass(lat, lng, radius_km, requested)
         cache_key = CacheService.make_key(lat, lng, radius_km, activities)
@@ -203,14 +207,19 @@ def calculate_bounding_box(
 
 
 def build_overpass_query(
-    bounding_box: BoundingBox, activities: list[ActivityDefinition]
+    bounding_box: BoundingBox,
+    activities: list[ActivityDefinition] | None = None,
 ) -> str:
-    statements = "\n".join(
-        f"  nwr{VENUE_AMENITY_FILTER}{_tag_filter(osm_tag)}"
-        f"{bounding_box.to_overpass()};"
-        for activity in activities
-        for osm_tag in activity.osm_tags
-    )
+    if activities:
+        statements = "\n".join(
+            f"  nwr{VENUE_AMENITY_FILTER}{_tag_filter(osm_tag)}"
+            f"{bounding_box.to_overpass()};"
+            for activity in activities
+            for osm_tag in activity.osm_tags
+        )
+    else:
+        # No filter: fetch all bars/pubs in the area
+        statements = f"  nwr{VENUE_AMENITY_FILTER}{bounding_box.to_overpass()};"
     return (
         f"[out:json][timeout:{OVERPASS_QUERY_TIMEOUT_SECONDS}];\n"
         f"(\n{statements}\n);\n"
