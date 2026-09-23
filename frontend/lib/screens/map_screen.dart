@@ -419,7 +419,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             .toSet() ??
         {};
 
-    final clusters = _clusterVenues(venues, _currentZoom);
+    double zoom;
+    try {
+      zoom = _mapController.camera.zoom;
+    } catch (_) {
+      zoom = defaultZoomLevel;
+    }
+    final clusters = _clusterVenues(venues, zoom);
 
     return clusters.map((cluster) {
       if (cluster.length == 1) {
