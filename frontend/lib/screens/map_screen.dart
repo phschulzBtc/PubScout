@@ -9,6 +9,7 @@ import '../core/constants.dart';
 import '../models/venue.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
+import '../widgets/activity_filter_bar.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -77,15 +78,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         title: const Text(appName),
         actions: [
           venues.when(
-            data: (list) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Center(
-                child: Text(
-                  '${list.length} Venues',
-                  style: Theme.of(context).textTheme.bodySmall,
+            data: (list) {
+              final filter = ref.watch(venueFilterProvider);
+              final filterCount = filter.activities.length;
+              final label = filterCount > 0
+                  ? '${list.length} Venues ($filterCount Filter)'
+                  : '${list.length} Venues';
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(horizontal: 12),
               child: Center(child: SizedBox(
@@ -98,7 +106,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
+        children: [
+          const ActivityFilterBar(),
+          Expanded(
+            child: Stack(
         children: [
           FlutterMap(
             mapController: _mapController,
@@ -169,6 +181,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 ),
               ),
             ),
+        ],
+      ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
