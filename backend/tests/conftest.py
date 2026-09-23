@@ -1,49 +1,43 @@
+from unittest.mock import AsyncMock
+
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel
 
-from pubscout.db.session import get_session
 from pubscout.main import app
-
-TEST_DATABASE_URL = "sqlite+aiosqlite://"
-
-test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    echo=False,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-test_session_factory = async_sessionmaker(
-    test_engine, class_=AsyncSession, expire_on_commit=False
-)
-
-
-@pytest.fixture(autouse=True)
-async def setup_db():
-    import pubscout.models  # noqa: F401
-
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-    yield
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
+from pubscout.schemas.activity import ActivitySummary
+from pubscout.schemas.venue import VenueResponse
 
 
 @pytest.fixture
-async def session():
-    async with test_session_factory() as session:
-        yield session
+def mock_osm_service():
+    return AsyncMock()
 
 
 @pytest.fixture
-async def client(session):
-    async def override_get_session():
-        yield session
-
-    app.dependency_overrides[get_session] = override_get_session
+async def client(mock_osm_service):
+    app.state.osm_service = mock_osm_service
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
-    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sample_venues():
+    return [
+        VenueResponse(
+            name="Test Bar",
+            latitude=52.52,
+            longitude=13.405,
+            address="Teststr. 1, 10115 Berlin",
+            osm_id="node/123",
+            activities=[ActivitySummary(name="Darts", icon="darts")],
+        ),
+        VenueResponse(
+            name="Pool Hall",
+            latitude=52.51,
+            longitude=13.41,
+            address="Poolstr. 2, 10115 Berlin",
+            osm_id="node/456",
+            activities=[ActivitySummary(name="Pool", icon="pool")],
+        ),
+    ]

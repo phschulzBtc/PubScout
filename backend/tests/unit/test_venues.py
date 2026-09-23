@@ -1,40 +1,66 @@
 import pytest
 
-from pubscout.models.activity import Activity
-from pubscout.models.venue import Venue
+
+@pytest.mark.asyncio
+async def test_list_venues_requires_lat_lng(client):
+    response = await client.get("/venues")
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_list_venues_empty(client):
-    response = await client.get("/venues")
-    assert response.status_code == 200
-    assert response.json() == []
+async def test_list_venues_returns_results(client, mock_osm_service, sample_venues):
+    mock_osm_service.fetch_venues.return_value = sample_venues
 
-
-@pytest.mark.asyncio
-async def test_list_venues_with_activities(client, session):
-    activity = Activity(name="Darts", icon="darts")
-    session.add(activity)
-    await session.flush()
-
-    venue = Venue(
-        name="Test Bar",
-        latitude=52.52,
-        longitude=13.405,
-        address="Teststr. 1, Berlin",
-        osm_id="node/123",
-        activities=[activity],
-    )
-    session.add(venue)
-    await session.commit()
-
-    response = await client.get("/venues")
+    response = await client.get("/venues?lat=52.52&lng=13.405")
     assert response.status_code == 200
 
     data = response.json()
-    assert len(data) == 1
+    assert len(data) == 2
     assert data[0]["name"] == "Test Bar"
-    assert data[0]["latitude"] == 52.52
     assert data[0]["osm_id"] == "node/123"
-    assert len(data[0]["activities"]) == 1
     assert data[0]["activities"][0]["name"] == "Darts"
+
+    mock_osm_service.fetch_venues.assert_called_once_with(52.52, 13.405, 5.0, None)
+
+
+@pytest.mark.asyncio
+async def test_list_venues_with_radius(client, mock_osm_service):
+    mock_osm_service.fetch_venues.return_value = []
+
+    response = await client.get("/venues?lat=52.52&lng=13.405&radius_km=10")
+    assert response.status_code == 200
+
+    mock_osm_service.fetch_venues.assert_called_once_with(52.52, 13.405, 10.0, None)
+
+
+@pytest.mark.asyncio
+async def test_list_venues_with_activity_filter(client, mock_osm_service):
+    mock_osm_service.fetch_venues.return_value = []
+
+    response = await client.get("/venues?lat=52.52&lng=13.405&activities=darts,pool")
+    assert response.status_code == 200
+
+    mock_osm_service.fetch_venues.assert_called_once_with(
+        52.52, 13.405, 5.0, ["darts", "pool"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_venues_validates_lat_range(client):
+    response = await client.get("/venues?lat=91&lng=13.405")
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_list_venues_validates_lng_range(client):
+    response = await client.get("/venues?lat=52.52&lng=181")
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_list_venues_validates_radius_range(client):
+    response = await client.get("/venues?lat=52.52&lng=13.405&radius_km=0")
+    assert response.status_code == 422
+
+    response = await client.get("/venues?lat=52.52&lng=13.405&radius_km=51")
+    assert response.status_code == 422

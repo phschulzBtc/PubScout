@@ -2,9 +2,9 @@ from pydantic import BaseModel
 
 
 class ActivityResponse(BaseModel):
-    id: int
     name: str
     icon: str
+    osm_tags: list[str]
 
 
 class ActivitySummary(BaseModel):
