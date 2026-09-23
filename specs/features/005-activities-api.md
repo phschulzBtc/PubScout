@@ -1,6 +1,7 @@
 # Feature 005: Activities API
 
 ## Status: draft
+## Owner: Dev A (Backend)
 
 ## User Story
 Als Frontend-Entwickler möchte ich alle verfügbaren Aktivitätstypen abrufen können, damit ich Filter-Optionen in der UI anzeigen kann.

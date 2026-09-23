@@ -1,6 +1,8 @@
 # Feature 008: Aktivitäts-Filter
 
 ## Status: draft
+## Owner: Dev B (Frontend)
+## Depends on: 006, 007
 
 ## User Story
 Als Nutzer möchte ich nach bestimmten Aktivitäten filtern können, damit ich nur Bars sehe die meine gewünschte Aktivität anbieten.

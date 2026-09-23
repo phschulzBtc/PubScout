@@ -1,6 +1,8 @@
 # Feature 007: Karten-Ansicht
 
 ## Status: draft
+## Owner: Dev B (Frontend)
+## Depends on: 006
 
 ## User Story
 Als Nutzer möchte ich eine Karte mit Venue-Markern sehen, damit ich Bars und Kneipen in meiner Umgebung visuell finden kann.

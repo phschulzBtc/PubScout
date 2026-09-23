@@ -36,7 +36,14 @@
 - Memory-Datei enthält Projekt-Entscheidungen
 - Bei wichtigen Entscheidungen Memory-File aktualisieren
 
+### Alles dokumentieren
+- Jede Entscheidung dokumentieren: was wurde entschieden, warum, welche Alternativen gab es
+- Technologie-Entscheidungen in der Spec oder in `docs/claude/` festhalten
+- Architektur-Änderungen in `docs/claude/architecture.md` aktualisieren
+- Neue Workarounds/Gotchas in `docs/claude/nixos.md` oder relevante Datei aufnehmen
+- Wenn ein Feature fertig ist: Spec aktualisieren mit finalen technischen Notizen
+- Keine undokumentierten Konventionen — was nicht aufgeschrieben ist, existiert nicht
+
 ### Kommunikation
 - Bei Unklarheiten in der Spec: Rückfrage stellen, nicht raten
 - Bei Architektur-Entscheidungen: User einbeziehen
-- Technologie-Entscheidungen dokumentieren (warum X statt Y)

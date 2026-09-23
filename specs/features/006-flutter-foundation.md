@@ -1,6 +1,8 @@
 # Feature 006: Flutter Grundgerüst
 
 ## Status: draft
+## Owner: Dev B (Frontend)
+## Depends on: API Contract aus 004, 005 (Mock-Daten bis Backend fertig)
 
 ## User Story
 Als Nutzer möchte ich eine funktionierende App-Shell mit Navigation und API-Anbindung, damit ich die App verwenden kann.
@@ -13,6 +15,7 @@ Als Nutzer möchte ich eine funktionierende App-Shell mit Navigation und API-Anb
 - [ ] Riverpod Provider für Venues und Activities
 - [ ] Error Handling im API Client (Timeout, Network Error)
 - [ ] Loading States in Providern
+- [ ] Mock-API-Client für Entwicklung ohne laufendes Backend
 - [ ] Widget-Tests für App-Shell
 
 ## UI/UX

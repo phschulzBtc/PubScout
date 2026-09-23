@@ -1,6 +1,7 @@
 # Feature 003: OSM Data Service
 
 ## Status: draft
+## Owner: Dev A (Backend)
 
 ## User Story
 Als Backend-Entwickler möchte ich einen Service der Venue-Daten von OpenStreetMap via Overpass API abfragt, damit die App reale Bars und Kneipen mit Aktivitäten anzeigen kann.

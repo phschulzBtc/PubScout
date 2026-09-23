@@ -1,6 +1,7 @@
 # Feature 004: Venues API
 
 ## Status: draft
+## Owner: Dev A (Backend)
 
 ## User Story
 Als Frontend-Entwickler möchte ich Venues nach Standort und Aktivitäten filtern können, damit die Karte nur relevante Ergebnisse anzeigt.
