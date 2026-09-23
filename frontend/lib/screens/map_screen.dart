@@ -10,6 +10,7 @@ import '../models/venue.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
 import '../widgets/activity_filter_bar.dart';
+import '../widgets/venue_detail_sheet.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -209,41 +210,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   void _showVenuePopup(Venue venue) {
+    final userLocation = ref.read(userLocationProvider);
+    double? userLat;
+    double? userLng;
+    userLocation.whenData((loc) {
+      userLat = loc.latitude;
+      userLng = loc.longitude;
+    });
+
     showModalBottomSheet(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              venue.name,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            if (venue.address.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, size: 16),
-                  const SizedBox(width: 4),
-                  Expanded(child: Text(venue.address)),
-                ],
-              ),
-            ],
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: venue.activities
-                  .map((a) => Chip(
-                        label: Text(a.name),
-                        visualDensity: VisualDensity.compact,
-                      ))
-                  .toList(),
-            ),
-          ],
-        ),
+      isScrollControlled: true,
+      builder: (_) => VenueDetailSheet(
+        venue: venue,
+        userLat: userLat,
+        userLng: userLng,
       ),
     );
   }
