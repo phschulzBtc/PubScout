@@ -1,18 +1,19 @@
 # Feature 010: Suchfunktion
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich nach einem Ort oder einer Adresse suchen können, damit ich Bars in einer bestimmten Gegend finden kann.
 
 ## Akzeptanzkriterien
-- [ ] Suchfeld in der AppBar oder als FloatingActionButton
-- [ ] Autocomplete-Vorschläge während der Eingabe
-- [ ] Suche via Nominatim API (OpenStreetMap Geocoding)
-- [ ] Auswahl eines Vorschlags zentriert die Karte auf den Ort
-- [ ] Venues werden für den neuen Standort geladen
-- [ ] Suchverlauf (letzte 5 Suchen, lokal gespeichert)
-- [ ] Widget-Tests
+- [x] Suchfeld über der Karte (rounded TextField mit Search Icon)
+- [x] Autocomplete-Vorschläge via Nominatim API (300ms Debounce)
+- [x] Suche via Nominatim API mit User-Agent und Rate-Limiting
+- [x] Auswahl zentriert Karte + lädt Venues für neuen Standort
+- [x] Suchverlauf (letzte 5 Suchen via SharedPreferences)
+- [x] History-Dropdown bei leerem Suchfeld + Fokus
+- [x] Clear-Button zum Zurücksetzen
+- [x] Widget-Tests (48 Tests gesamt)
 
 ## API Contract
 Nominatim API (extern):

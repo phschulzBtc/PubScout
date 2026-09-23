@@ -10,6 +10,7 @@ import '../models/venue.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
 import '../widgets/activity_filter_bar.dart';
+import '../widgets/search_bar_widget.dart';
 import '../widgets/venue_detail_sheet.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -109,6 +110,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       ),
       body: Column(
         children: [
+          SearchBarWidget(
+            onLocationSelected: (lat, lng, name) {
+              _mapController.move(LatLng(lat, lng), defaultZoomLevel);
+              ref.read(venueFilterProvider.notifier).update(lat: lat, lng: lng);
+            },
+          ),
           const ActivityFilterBar(),
           Expanded(
             child: Stack(
