@@ -3,7 +3,7 @@
 Web-App zum Finden von Bars/Kneipen mit Aktivitäten (Darts, Billard, Kicker, Brettspiele etc.) auf einer interaktiven Karte.
 
 ## Tech Stack
-- **Backend**: Python 3.13 / FastAPI / httpx / Overpass API (kein DB im MVP)
+- **Backend**: Python 3.13 / FastAPI / httpx — OSM-Proxy ohne Datenbank 
 - **Frontend**: Flutter Web (Dart) / flutter_map / Riverpod
 - **Data**: OpenStreetMap / Overpass API
 - **Dev**: Nix Flake (`nix develop`)

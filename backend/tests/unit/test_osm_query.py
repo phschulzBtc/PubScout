@@ -27,13 +27,14 @@ def test_build_overpass_query_requests_json_with_way_centers():
     assert query.rstrip().endswith("out center tags;")
 
 
-def test_build_overpass_query_restricts_to_pubs_and_bars_in_bounding_box():
+def test_build_overpass_query_puts_bounding_box_before_tag_filters():
+    # Bounding box last makes Overpass evaluate the regex filters globally,
+    # which reliably ends in HTTP 504 (verified live 2026-09-23).
     darts = find_activities_by_icons(["darts"])
 
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), darts)
 
-    assert 'nwr["amenity"~"^(pub|bar)$"]' in query
-    assert "(1.0,2.0,3.0,4.0);" in query
+    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar)$"]["sport"' in query
 
 
 def test_build_overpass_query_filters_on_every_tag_of_requested_activities():

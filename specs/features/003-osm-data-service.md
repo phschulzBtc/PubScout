@@ -38,7 +38,7 @@ async def fetch_venues(lat: float, lng: float, radius_km: float, activities: lis
   `find_activities_by_icons(icons)` löst Filter-Identifier (= `icon`) auf, unbekannte werden ignoriert.
 - `osm_service.py`:
   - `calculate_bounding_box()` — Radius → Bounding-Box (111,32 km/Breitengrad, Längengrad mit cos(lat) skaliert)
-  - `build_overpass_query()` — ein `nwr`-Statement je OSM-Tag, jeweils auf `amenity=pub|bar` + Bounding-Box beschränkt, `out center tags` (Ways/Relations liefern Mittelpunkt)
+  - `build_overpass_query()` — ein `nwr`-Statement je OSM-Tag, jeweils auf Bounding-Box (zuerst!) + `amenity=pub|bar` beschränkt, `out center tags` (Ways/Relations liefern Mittelpunkt)
   - `parse_overpass_response()` — Element → `VenueResponse`; Adresse aus `addr:*`; Elemente ohne `name` oder Koordinaten werden übersprungen
   - `OverpassClient` — POST mit eigenem User-Agent, Timeout; Fehler als `OverpassApiError` / `OverpassTimeoutError` / `OverpassRateLimitError` (HTTP 429)
   - `OsmService.fetch_venues()` — Signatur wie Contract, als Methode für Dependency Injection
@@ -46,11 +46,11 @@ async def fetch_venues(lat: float, lng: float, radius_km: float, activities: lis
 - Schema: `VenueResponse` ohne `id`, `activities` als `ActivitySummary {name, icon}` (Contract 004)
 
 ## Entscheidungen
-- **DB-Entfernung verschoben** (Entscheidung Dev A): `/activities` und `/venues` hängen noch an der DB. Der DB-Code wird entfernt, sobald 004/005 die Router auf die Services umstellen. Alternativen: Router in 003 minimal umverdrahten, oder 003–005 gemeinsam umsetzen.
+- **DB-Entfernung verschoben** (Entscheidung Dev A): `/activities` und `/venues` hängen noch an der DB. Der DB-Code wird entfernt, sobald 004/005 die Router auf die Services umstellen. Alternativen: Router in 003 minimal umverdrahten, oder 003–005 gemeinsam umsetzen. → **Erledigt in 005.**
 - **User-Agent Pflicht**: Overpass antwortet mit HTTP 406 auf den Default-User-Agent von httpx (verifiziert) → `USER_AGENT = "PubScout/0.1 (+repo-URL)"`.
 - **Filter ohne bekannte Activity** → leere Liste ohne Overpass-Request (statt Fehler). Validierung/Fehlermeldung für unbekannte Werte ist Sache des Routers (004).
 - **Leere Filterliste** (`activities=[]`) → leere Liste; `None` → alle Activities.
-- Öffentliche Overpass-Instanz antwortet sporadisch mit HTTP 504 (Live-Test 23.09.2026: ~1 von 4 Requests, unabhängig von der Kodierung) → `OverpassApiError`. Retry/Caching bewusst nicht in 003; Caching kommt mit 012.
+- ~~Öffentliche Overpass-Instanz antwortet sporadisch mit HTTP 504 (~1 von 4 Requests)~~ — **korrigiert in 005:** Hauptursache war die Query-Form. Mit der Bounding-Box *hinter* den Regex-Filtern (`nwr[...][...](bbox)`) wertet Overpass die Filter global aus → reproduzierbar HTTP 504. Fix: `nwr(bbox)[...][...]` (live: 504 → 200 in 1–9 s). Danach nur noch vereinzelte, echte Last-504 (2 von 9 Requests am 23.09.2026). Retry/Caching bewusst nicht in 003; Caching kommt mit 012.
 - Overpass liefert Laufzeitfehler auch mit HTTP 200 und `remark: "runtime error: ..."` → wird als `OverpassTimeoutError` ("timed out") bzw. `OverpassApiError` gemeldet, damit das nicht als „keine Venues“ durchrutscht.
 - Regex-Filter `(^|;) *value *(;|$)` toleriert Leerzeichen in Wertlisten (`sport=billiards; darts`), passend zu `match_activities`.
 

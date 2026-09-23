@@ -7,12 +7,10 @@ router = APIRouter(prefix="/activities", tags=["activities"])
 
 
 @router.get("", response_model=list[ActivityResponse])
-async def get_activities():
+async def get_activities() -> list[ActivityResponse]:
     return [
         ActivityResponse(
-            name=activity.name,
-            icon=activity.icon,
-            osm_tags=list(activity.osm_tags),
+            name=activity.name, icon=activity.icon, osm_tags=list(activity.osm_tags)
         )
         for activity in list_activities()
     ]
