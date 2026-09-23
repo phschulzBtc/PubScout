@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi import Request
+
 from pubscout.config import settings
 from pubscout.dependencies import osm_service_lifespan
 from pubscout.routers import activities, venues
@@ -28,5 +30,9 @@ app.include_router(venues.router)
 
 
 @app.get("/health")
-async def health_check():
-    return {"status": "ok", "app": settings.app_name}
+async def health_check(request: Request):
+    result: dict = {"status": "ok", "app": settings.app_name}
+    cache = getattr(request.app.state, "cache_service", None)
+    if cache:
+        result["cache"] = await cache.stats()
+    return result

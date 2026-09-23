@@ -1,6 +1,6 @@
 # Feature 005: Activities API
 
-## Status: draft
+## Status: done
 ## Owner: Dev A (Backend)
 
 ## User Story

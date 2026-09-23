@@ -1,6 +1,6 @@
 # Feature 016: PWA Support
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich die Web-App auf meinem Smartphone installieren können, damit ich sie wie eine native App verwenden kann.
