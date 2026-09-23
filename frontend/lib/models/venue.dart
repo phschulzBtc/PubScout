@@ -9,6 +9,7 @@ class Venue {
   final double longitude;
   final String address;
   final String osmId;
+  final String openingHours;
   final List<Activity> activities;
 
   const Venue({
@@ -17,6 +18,7 @@ class Venue {
     required this.longitude,
     this.address = '',
     this.osmId = '',
+    this.openingHours = '',
     this.activities = const [],
   });
 
@@ -41,6 +43,7 @@ class Venue {
       longitude: lng.toDouble(),
       address: json['address'] as String? ?? '',
       osmId: json['osm_id'] as String? ?? '',
+      openingHours: json['opening_hours'] as String? ?? '',
       activities: (json['activities'] as List<dynamic>?)
               ?.map((e) => Activity.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -54,6 +57,7 @@ class Venue {
         'longitude': longitude,
         'address': address,
         'osm_id': osmId,
+        'opening_hours': openingHours,
         'activities': activities.map((a) => a.toJson()).toList(),
       };
 

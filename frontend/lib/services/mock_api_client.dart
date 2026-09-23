@@ -69,6 +69,7 @@ class MockApiClient implements ApiClient {
         longitude: lng + 0.003,
         address: 'Kreuzbergstr. 12, Berlin',
         osmId: 'node/100001',
+        openingHours: 'Mo-Fr 17:00-02:00; Sa-Su 15:00-03:00',
         activities: const [
           Activity(name: 'Darts', icon: 'darts'),
           Activity(name: 'Billard', icon: 'billiards'),
@@ -80,6 +81,7 @@ class MockApiClient implements ApiClient {
         longitude: lng + 0.007,
         address: 'Sonnenallee 45, Berlin',
         osmId: 'node/100002',
+        openingHours: 'Mo-Su 16:00-01:00',
         activities: const [
           Activity(name: 'Kicker', icon: 'foosball'),
           Activity(name: 'Brettspiele', icon: 'board_games'),
@@ -91,6 +93,7 @@ class MockApiClient implements ApiClient {
         longitude: lng - 0.004,
         address: 'Torstr. 78, Berlin',
         osmId: 'node/100003',
+        openingHours: 'Mo-Sa 14:00-00:00; Su 16:00-22:00',
         activities: const [
           Activity(name: 'Pool', icon: 'pool'),
           Activity(name: 'Billard', icon: 'billiards'),
@@ -113,6 +116,7 @@ class MockApiClient implements ApiClient {
         longitude: lng + 0.009,
         address: 'Boxhagener Str. 15, Berlin',
         osmId: 'node/100005',
+        openingHours: 'Tu-Su 12:00-22:00',
         activities: const [
           Activity(name: 'Brettspiele', icon: 'board_games'),
           Activity(name: 'Tischtennis', icon: 'table_tennis'),
