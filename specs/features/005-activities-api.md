@@ -43,7 +43,7 @@ Als Frontend-Entwickler möchte ich alle verfügbaren Aktivitätstypen abrufen k
 - Neu: `test_app_lifespan.py` testet den echten App-Lifespan (ging vorher nicht, weil er die DB initialisierte).
 
 ## Entscheidungen / Befunde
-- **Overpass-504-Bug gefunden und behoben** (eigener Commit): Bounding-Box stand hinter den Regex-Filtern → Overpass filterte global → reproduzierbar HTTP 504. Jetzt `nwr(bbox)[...]`. Details in 003.
+- ~~Overpass-504-Bug gefunden und behoben: Bounding-Box hinter den Regex-Filtern → reproduzierbar HTTP 504~~ — **widerlegt** (Nachmessung 23.09.2026): Filter-Reihenfolge ist egal, Ursache war das Overpass-Rate-Limit. Die Umstellung auf `nwr(bbox)[...]` ist beim Merge von #3 ohnehin nicht auf `main` gelandet; der zugehörige Test wurde durch einen reihenfolge-unabhängigen ersetzt. Details in 003.
 - Die lokale `backend/pubscout.db` (gitignored) wird nicht mehr genutzt und kann gelöscht werden.
 - Die `.venv` enthält die entfernten Pakete noch, bis sie neu synchronisiert wird (`uv sync`) — funktional egal.
 
