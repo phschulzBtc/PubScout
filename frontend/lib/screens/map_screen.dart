@@ -16,6 +16,7 @@ import '../providers/venue_provider.dart';
 import '../widgets/activity_filter_bar.dart';
 import '../widgets/radius_selector.dart';
 import '../widgets/search_bar_widget.dart';
+import '../widgets/offline_banner.dart';
 import '../widgets/venue_detail_sheet.dart';
 import '../widgets/venue_list_panel.dart';
 import 'favorites_screen.dart';
@@ -110,6 +111,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
           return Column(
             children: [
+              const OfflineBanner(),
               // Search + Filters
               _buildSearchFilters(context),
               // Main content area

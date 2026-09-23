@@ -1,6 +1,6 @@
 # Feature 013: Offline-Karte
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich die zuletzt angesehene Kartenregion auch offline sehen können, damit ich unterwegs ohne Internet navigieren kann.
