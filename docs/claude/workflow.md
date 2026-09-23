@@ -9,14 +9,17 @@
    - Gibt konkretes Feedback mit Datei:Zeile Referenzen
    - Findings einarbeiten bevor gemerged wird
 5. **Spec aktualisieren** — Status auf `done`, Checkboxen abhaken
-6. **Commit + Merge** — In develop mergen
+6. **Commit + Merge** — Nach `main` mergen:
+   1. `git switch main && git pull` — **immer vorher pullen**, damit Änderungen des anderen Devs drin sind
+   2. `git merge feature/NNN-description`
+   3. Tests auf `main` erneut laufen lassen, erst dann pushen
 
 ## Git Branching
-- `main` — Stable/Production
-- `develop` — Integration Branch
-- `feature/NNN-description` — Feature Branches
+- `main` — Integration + Stable (Feature-Branches werden hierher gemergt)
+- `feature/NNN-description` — Feature Branches (von aktuellem `main` abzweigen)
 - `fix/NNN-description` — Bugfix Branches
-- Niemals direkt auf `main` oder `develop` committen
+- Niemals direkt auf `main` committen — nur Merges von Feature-/Fix-Branches
+- Kein `develop`-Branch (Entscheidung 23.09.2026: zwei Devs, getrennte Verzeichnisse → Integration-Branch unnötig)
 
 ## Paralleles Arbeiten (2 Entwickler)
 
