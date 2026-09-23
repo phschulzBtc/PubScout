@@ -201,10 +201,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 ),
               ],
             ),
-            venues.when(
-              data: (list) => MarkerLayer(markers: _buildMarkers(list)),
-              loading: () => const MarkerLayer(markers: []),
-              error: (_, _) => const MarkerLayer(markers: []),
+            MarkerLayer(
+              markers: _buildMarkers(venues.value ?? []),
             ),
           ],
         ),

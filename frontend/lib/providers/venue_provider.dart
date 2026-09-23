@@ -26,14 +26,26 @@ class VenueFilterNotifier extends Notifier<VenueFilter> {
 final venueFilterProvider =
     NotifierProvider<VenueFilterNotifier, VenueFilter>(VenueFilterNotifier.new);
 
-final venueProvider = FutureProvider<List<Venue>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final filter = ref.watch(venueFilterProvider);
+class VenueNotifier extends AsyncNotifier<List<Venue>> {
+  @override
+  Future<List<Venue>> build() async {
+    final client = ref.watch(apiClientProvider);
+    final filter = ref.watch(venueFilterProvider);
 
-  return client.fetchVenues(
-    lat: filter.lat,
-    lng: filter.lng,
-    radiusKm: filter.radiusKm,
-    activities: filter.activities.isEmpty ? null : filter.activities,
-  );
-});
+    // Keep previous data visible while loading
+    final previous = state.value;
+    if (previous != null) {
+      state = AsyncData(previous);
+    }
+
+    return client.fetchVenues(
+      lat: filter.lat,
+      lng: filter.lng,
+      radiusKm: filter.radiusKm,
+      activities: filter.activities.isEmpty ? null : filter.activities,
+    );
+  }
+}
+
+final venueProvider =
+    AsyncNotifierProvider<VenueNotifier, List<Venue>>(VenueNotifier.new);
