@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -178,6 +179,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           options: MapOptions(
             initialCenter: const LatLng(defaultLatitude, defaultLongitude),
             initialZoom: defaultZoomLevel,
+            minZoom: 10,
+            maxZoom: 18,
             onMapEvent: _onMapEvent,
           ),
           children: [
@@ -413,22 +416,77 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             .toSet() ??
         {};
 
-    return venues.map((venue) {
-      final isFav = favoriteIds.contains(venue.osmId);
-      final isSelected = _selectedVenue == venue;
-      return Marker(
-        point: LatLng(venue.latitude, venue.longitude),
-        width: isSelected ? 52 : 44,
-        height: isSelected ? 60 : 52,
-        child: GestureDetector(
-          onTap: () => _showVenuePopup(venue),
-          child: _VenueMarkerIcon(
-            isFavorite: isFav,
-            isSelected: isSelected,
+    final zoom = _mapController.camera.zoom;
+    final clusters = _clusterVenues(venues, zoom);
+
+    return clusters.map((cluster) {
+      if (cluster.length == 1) {
+        final venue = cluster.first;
+        final isFav = favoriteIds.contains(venue.osmId);
+        final isSelected = _selectedVenue == venue;
+        return Marker(
+          point: LatLng(venue.latitude, venue.longitude),
+          width: isSelected ? 52 : 44,
+          height: isSelected ? 60 : 52,
+          child: GestureDetector(
+            onTap: () => _showVenuePopup(venue),
+            child: _VenueMarkerIcon(
+              isFavorite: isFav,
+              isSelected: isSelected,
+            ),
           ),
+        );
+      }
+
+      // Cluster marker
+      final avgLat =
+          cluster.map((v) => v.latitude).reduce((a, b) => a + b) /
+              cluster.length;
+      final avgLng =
+          cluster.map((v) => v.longitude).reduce((a, b) => a + b) /
+              cluster.length;
+      return Marker(
+        point: LatLng(avgLat, avgLng),
+        width: 44,
+        height: 44,
+        child: GestureDetector(
+          onTap: () {
+            // Zoom into the cluster
+            _mapController.move(
+              LatLng(avgLat, avgLng),
+              math.min(zoom + 2, 18),
+            );
+          },
+          child: _ClusterIcon(count: cluster.length),
         ),
       );
     }).toList();
+  }
+
+  /// Simple grid-based clustering: at lower zoom levels, nearby venues
+  /// are grouped together based on their approximate pixel distance.
+  List<List<Venue>> _clusterVenues(List<Venue> venues, double zoom) {
+    if (zoom >= 16) {
+      return venues.map((v) => [v]).toList();
+    }
+
+    // Grid cell size in degrees — shrinks as zoom increases
+    final cellSize = 360.0 / math.pow(2, zoom + 2);
+    final Map<String, List<Venue>> grid = {};
+
+    for (final venue in venues) {
+      // Selected venue never clusters
+      if (venue == _selectedVenue) {
+        grid[venue.osmId] = [venue];
+        continue;
+      }
+      final cx = (venue.longitude / cellSize).floor();
+      final cy = (venue.latitude / cellSize).floor();
+      final key = '$cx:$cy';
+      grid.putIfAbsent(key, () => []).add(venue);
+    }
+
+    return grid.values.toList();
   }
 
   void _showVenuePopup(Venue venue) {
@@ -545,4 +603,40 @@ class _PinTrianglePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ClusterIcon extends StatelessWidget {
+  final int count;
+
+  const _ClusterIcon({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: pubScoutGreenDark,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          '$count',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
 }
