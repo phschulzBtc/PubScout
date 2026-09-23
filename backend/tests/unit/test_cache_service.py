@@ -1,12 +1,16 @@
-import time
-
 import pytest
 
 from pubscout.services.cache_service import CacheService
 
 SAMPLE_VENUES = [
-    {"name": "Test Bar", "latitude": 52.5, "longitude": 13.4,
-     "address": "", "osm_id": "node/1", "activities": []},
+    {
+        "name": "Test Bar",
+        "latitude": 52.5,
+        "longitude": 13.4,
+        "address": "",
+        "osm_id": "node/1",
+        "activities": [],
+    },
 ]
 
 
