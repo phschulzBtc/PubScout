@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/theme.dart';
 import '../models/venue.dart';
 
 class VenueDetailSheet extends StatelessWidget {
@@ -22,84 +23,132 @@ class VenueDetailSheet extends StatelessWidget {
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.4,
+      initialChildSize: 0.45,
       minChildSize: 0.2,
-      maxChildSize: 0.7,
+      maxChildSize: 0.75,
       expand: false,
       builder: (context, scrollController) {
-        return SingleChildScrollView(
-          controller: scrollController,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Drag handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Header: icon + name
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [pubScoutGreen, pubScoutGreenDark],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.sports_bar,
+                            color: Colors.white, size: 26),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(venue.name,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w700)),
+                            if (venue.address.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(venue.address,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant)),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Activity chips
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: venue.activities
+                        .map((a) => Chip(
+                              label: Text(a.name,
+                                  style: const TextStyle(fontSize: 13)),
+                              backgroundColor:
+                                  pubScoutGreen.withValues(alpha: 0.1),
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                            ))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Info cards
+                  Container(
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(2),
+                      color: theme.colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Name
-                Text(venue.name, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 8),
-
-                // Activities
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: venue.activities
-                      .map((a) => Chip(
-                            label: Text(a.name),
-                            visualDensity: VisualDensity.compact,
-                          ))
-                      .toList(),
-                ),
-                const SizedBox(height: 16),
-
-                // Address
-                if (venue.address.isNotEmpty)
-                  _InfoRow(
-                    icon: Icons.location_on,
-                    text: venue.address,
-                  ),
-
-                // Distance
-                if (userLat != null && userLng != null)
-                  _InfoRow(
-                    icon: Icons.straighten,
-                    text: _formatDistance(
-                      _distanceKm(
-                          userLat!, userLng!, venue.latitude, venue.longitude),
+                    child: Column(
+                      children: [
+                        if (userLat != null && userLng != null)
+                          _InfoTile(
+                            icon: Icons.near_me,
+                            label: 'Entfernung',
+                            value: _formatDistance(_distanceKm(
+                                userLat!, userLng!, venue.latitude,
+                                venue.longitude)),
+                            showDivider: venue.openingHours.isNotEmpty,
+                          ),
+                        if (venue.openingHours.isNotEmpty)
+                          _InfoTile(
+                            icon: Icons.schedule,
+                            label: 'Öffnungszeiten',
+                            value: venue.openingHours,
+                            showDivider: false,
+                          ),
+                      ],
                     ),
                   ),
 
-                // Opening hours
-                if (venue.openingHours.isNotEmpty)
-                  _InfoRow(
-                    icon: Icons.access_time,
-                    text: venue.openingHours,
-                  ),
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 20),
-
-                // Route button
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => _openRoute(venue),
-                    icon: const Icon(Icons.directions),
-                    label: const Text('Route planen'),
+                  // Route button
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => _openRoute(venue),
+                      icon: const Icon(Icons.directions),
+                      label: const Text('Route planen'),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -108,10 +157,8 @@ class VenueDetailSheet extends StatelessWidget {
   }
 
   String _formatDistance(double km) {
-    if (km < 1) {
-      return '${(km * 1000).round()} m entfernt';
-    }
-    return '${km.toStringAsFixed(1)} km entfernt';
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(1)} km';
   }
 
   double _distanceKm(double lat1, double lng1, double lat2, double lng2) {
@@ -139,24 +186,45 @@ class VenueDetailSheet extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _InfoTile extends StatelessWidget {
   final IconData icon;
-  final String text;
+  final String label;
+  final String value;
+  final bool showDivider;
 
-  const _InfoRow({required this.icon, required this.text});
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.showDivider = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text)),
-        ],
-      ),
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: pubScoutGreen),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: theme.textTheme.labelSmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(value, style: theme.textTheme.bodyMedium),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (showDivider)
+          Divider(height: 1, indent: 48, color: theme.dividerColor),
+      ],
     );
   }
 }

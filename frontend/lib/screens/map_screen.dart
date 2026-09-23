@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../core/constants.dart';
+import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
@@ -62,7 +65,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final venues = ref.watch(venueProvider);
     final userLocation = ref.watch(userLocationProvider);
 
-    // Center map on user location once
     if (!_initialLocationSet) {
       userLocation.whenData((location) {
         _initialLocationSet = true;
@@ -78,149 +80,156 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(appName),
+        title: Row(
+          children: [
+            SvgPicture.asset('assets/logo.svg', height: 32, width: 32),
+            const SizedBox(width: 10),
+            const Text(appName),
+          ],
+        ),
         actions: [
-          venues.when(
-            data: (list) {
-              final filter = ref.watch(venueFilterProvider);
-              final filterCount = filter.activities.length;
-              final label = filterCount > 0
-                  ? '${list.length} Venues ($filterCount Filter)'
-                  : '${list.length} Venues';
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Center(
-                  child: Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-              );
-            },
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Center(child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )),
-            ),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
+          _buildVenueCount(context, venues),
         ],
       ),
       body: Column(
         children: [
-          SearchBarWidget(
-            onLocationSelected: (lat, lng, name) {
-              _mapController.move(LatLng(lat, lng), defaultZoomLevel);
-              ref.read(venueFilterProvider.notifier).update(lat: lat, lng: lng);
-            },
+          // Search + Filters area with subtle background
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                SearchBarWidget(
+                  onLocationSelected: (lat, lng, name) {
+                    _mapController.move(LatLng(lat, lng), defaultZoomLevel);
+                    ref
+                        .read(venueFilterProvider.notifier)
+                        .update(lat: lat, lng: lng);
+                  },
+                ),
+                Row(
+                  children: [
+                    const Expanded(child: ActivityFilterBar()),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: const RadiusSelector(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const Row(
-            children: [
-              Expanded(child: ActivityFilterBar()),
-              Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: RadiusSelector(),
-              ),
-            ],
-          ),
+          // Map
           Expanded(
             child: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter:
-                  const LatLng(defaultLatitude, defaultLongitude),
-              initialZoom: defaultZoomLevel,
-              onMapEvent: _onMapEvent,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.pubscout.app',
-              ),
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: LatLng(
-                      ref.watch(venueFilterProvider).lat,
-                      ref.watch(venueFilterProvider).lng,
-                    ),
-                    radius: ref.watch(venueFilterProvider).radiusKm * 1000,
-                    useRadiusInMeter: true,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.08),
-                    borderColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.3),
-                    borderStrokeWidth: 1.5,
+              children: [
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter:
+                        const LatLng(defaultLatitude, defaultLongitude),
+                    initialZoom: defaultZoomLevel,
+                    onMapEvent: _onMapEvent,
                   ),
-                ],
-              ),
-              venues.when(
-                data: (list) => MarkerLayer(markers: _buildMarkers(list)),
-                loading: () => const MarkerLayer(markers: []),
-                error: (_, _) => const MarkerLayer(markers: []),
-              ),
-            ],
-          ),
-          // Loading overlay
-          if (venues.isLoading)
-            const Positioned(
-              top: 8,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 14,
-                          height: 14,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.pubscout.app',
+                    ),
+                    CircleLayer(
+                      circles: [
+                        CircleMarker(
+                          point: LatLng(
+                            ref.watch(venueFilterProvider).lat,
+                            ref.watch(venueFilterProvider).lng,
+                          ),
+                          radius:
+                              ref.watch(venueFilterProvider).radiusKm * 1000,
+                          useRadiusInMeter: true,
+                          color: pubScoutGreen.withValues(alpha: 0.06),
+                          borderColor: pubScoutGreen.withValues(alpha: 0.25),
+                          borderStrokeWidth: 2,
                         ),
-                        SizedBox(width: 8),
-                        Text('Venues laden...'),
                       ],
                     ),
-                  ),
+                    venues.when(
+                      data: (list) =>
+                          MarkerLayer(markers: _buildMarkers(list)),
+                      loading: () => const MarkerLayer(markers: []),
+                      error: (_, _) => const MarkerLayer(markers: []),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-          // Error message
-          if (venues.hasError)
-            Positioned(
-              top: 8,
-              left: 16,
-              right: 16,
-              child: Card(
-                color: Theme.of(context).colorScheme.errorContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    'Fehler beim Laden: ${venues.error}',
-                    style: TextStyle(
-                      color:
-                          Theme.of(context).colorScheme.onErrorContainer,
+                // Loading pill
+                if (venues.isLoading)
+                  Positioned(
+                    top: 12,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: pubScoutGreenDark,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: const [
+                            BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 8,
+                                offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            Text('Venues laden...',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 13)),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                // Error
+                if (venues.hasError)
+                  Positioned(
+                    top: 12,
+                    left: 16,
+                    right: 16,
+                    child: Card(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          'Fehler beim Laden: ${venues.error}',
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
           ),
         ],
       ),
@@ -232,12 +241,55 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
+  Widget _buildVenueCount(BuildContext context, AsyncValue<List<Venue>> venues) {
+    return venues.when(
+      data: (list) {
+        final filter = ref.watch(venueFilterProvider);
+        final filterCount = filter.activities.length;
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.place, size: 14, color: pubScoutCream),
+              const SizedBox(width: 4),
+              Text(
+                filterCount > 0
+                    ? '${list.length} ($filterCount Filter)'
+                    : '${list.length}',
+                style: const TextStyle(
+                    color: pubScoutCream,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: Center(
+            child: SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(strokeWidth: 2, color: pubScoutCream),
+        )),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
   List<Marker> _buildMarkers(List<Venue> venues) {
     return venues.map((venue) {
       return Marker(
         point: LatLng(venue.latitude, venue.longitude),
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 52,
         child: GestureDetector(
           onTap: () => _showVenuePopup(venue),
           child: const _VenueMarkerIcon(),
@@ -258,6 +310,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => VenueDetailSheet(
         venue: venue,
         userLat: userLat,
@@ -272,20 +325,54 @@ class _VenueMarkerIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, 2),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [pubScoutGreen, pubScoutGreenDark],
+            ),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: const Icon(Icons.sports_bar, color: Colors.white, size: 22),
+          child: const Icon(Icons.sports_bar, color: Colors.white, size: 20),
+        ),
+        // Pin triangle
+        CustomPaint(
+          size: const Size(12, 8),
+          painter: _PinTrianglePainter(),
+        ),
+      ],
     );
   }
+}
+
+class _PinTrianglePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = pubScoutGreenDark
+      ..style = PaintingStyle.fill;
+    final path = ui.Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
