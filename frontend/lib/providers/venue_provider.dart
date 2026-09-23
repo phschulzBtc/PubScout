@@ -32,10 +32,18 @@ class VenueNotifier extends AsyncNotifier<List<Venue>> {
     final client = ref.watch(apiClientProvider);
     final filter = ref.watch(venueFilterProvider);
 
-    // Keep previous data visible while loading
+    // While loading, show previous data filtered by current activity selection
     final previous = state.value;
     if (previous != null) {
-      state = AsyncData(previous);
+      if (filter.activities.isEmpty) {
+        state = AsyncData(previous);
+      } else {
+        final filtered = previous
+            .where((v) => v.activities
+                .any((a) => filter.activities.contains(a.icon)))
+            .toList();
+        state = AsyncData(filtered);
+      }
     }
 
     return client.fetchVenues(
