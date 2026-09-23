@@ -1,9 +1,11 @@
+import asyncio
 from collections.abc import AsyncIterator, Callable
 from urllib.parse import parse_qs
 
 import httpx
 import pytest
 
+from pubscout.services.cache_service import CacheService
 from pubscout.services.osm_service import (
     OVERPASS_MIN_REQUEST_INTERVAL_SECONDS,
     OsmService,
@@ -225,3 +227,63 @@ async def test_fetch_venues_without_known_activities_skips_request(
 
     assert venues == []
     assert queries == []
+
+
+@pytest.fixture
+async def cache() -> AsyncIterator[CacheService]:
+    cache = CacheService(":memory:")
+    await cache.init()
+    yield cache
+    await cache.close()
+
+
+def _slow_counting_handler(state: dict, status_code: int = 200) -> Callable:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        state["requests"] += 1
+        state["in_flight"] += 1
+        state["max_in_flight"] = max(state["max_in_flight"], state["in_flight"])
+        await asyncio.sleep(0.01)
+        state["in_flight"] -= 1
+        return httpx.Response(status_code, json=DART_PUB_RESPONSE)
+
+    return handler
+
+
+def _counting_state() -> dict:
+    return {"requests": 0, "in_flight": 0, "max_in_flight": 0}
+
+
+async def test_client_runs_at_most_one_overpass_request_at_a_time(make_client):
+    state = _counting_state()
+    client = make_client(_slow_counting_handler(state))
+
+    await asyncio.gather(*(client.query(f"q{number}") for number in range(3)))
+
+    assert state["requests"] == 3
+    assert state["max_in_flight"] == 1
+
+
+async def test_identical_parallel_fetches_hit_overpass_only_once(make_client, cache):
+    state = _counting_state()
+    service = OsmService(make_client(_slow_counting_handler(state)), cache=cache)
+
+    results = await asyncio.gather(
+        *(service.fetch_venues(52.52, 13.405, radius_km=1.0) for _ in range(3))
+    )
+
+    assert state["requests"] == 1
+    assert all(venues[0].osm_id == "node/1" for venues in results)
+
+
+async def test_identical_parallel_fetches_share_one_failure(make_client, cache):
+    state = _counting_state()
+    handler = _slow_counting_handler(state, status_code=429)
+    service = OsmService(make_client(handler), cache=cache)
+
+    results = await asyncio.gather(
+        *(service.fetch_venues(52.52, 13.405, radius_km=1.0) for _ in range(3)),
+        return_exceptions=True,
+    )
+
+    assert state["requests"] == 1
+    assert all(isinstance(result, OverpassRateLimitError) for result in results)

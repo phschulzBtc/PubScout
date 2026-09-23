@@ -1,7 +1,7 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from pubscout.config import settings
@@ -29,5 +29,9 @@ app.include_router(venues.router)
 
 
 @app.get("/health")
-async def health_check():
-    return {"status": "ok", "app": settings.app_name}
+async def health_check(request: Request):
+    result: dict = {"status": "ok", "app": settings.app_name}
+    cache = getattr(request.app.state, "cache_service", None)
+    if cache:
+        result["cache"] = await cache.stats()
+    return result

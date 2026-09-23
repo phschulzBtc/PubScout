@@ -3,7 +3,7 @@
 Web-App zum Finden von Bars/Kneipen mit Aktivitäten (Darts, Billard, Kicker, Brettspiele etc.) auf einer interaktiven Karte.
 
 ## Tech Stack
-- **Backend**: Python 3.13 / FastAPI / httpx — OSM-Proxy ohne Datenbank (MVP, DB ab Feature 012)
+- **Backend**: Python 3.13 / FastAPI / httpx — OSM-Proxy ohne Datenbank 
 - **Frontend**: Flutter Web (Dart) / flutter_map / Riverpod
 - **Data**: OpenStreetMap / Overpass API
 - **Dev**: Nix Flake (`nix develop`)
@@ -19,5 +19,5 @@ Web-App zum Finden von Bars/Kneipen mit Aktivitäten (Darts, Billard, Kicker, Br
 - Backend port: **8000**, OpenAPI docs: `/docs`, Health: `/health`
 - Feature-Specs: `specs/features/NNN-feature-name.md`
 - Branches: `main` ← PR ← `feature/NNN-desc` (vorher immer `git fetch`/`pull`)
-- Tests: `uv run pytest tests/ -v` (mit LD_LIBRARY_PATH auf NixOS)
+- Tests: `uv run pytest tests/ -v`
 - Lint: `nix-shell -p ruff --run "ruff check src/"`

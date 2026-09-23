@@ -23,12 +23,12 @@ class ActivityFilterBar extends ConsumerWidget {
           separatorBuilder: (_, _) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
             final activity = activities[index];
-            final isSelected = selectedActivities.contains(activity.name);
+            final isSelected = selectedActivities.contains(activity.icon);
 
             return FilterChip(
               label: Text(activity.name),
               selected: isSelected,
-              onSelected: (_) => _toggleActivity(ref, activity.name),
+              onSelected: (_) => _toggleActivity(ref, activity.icon),
               avatar: Icon(
                 _activityIcon(activity.icon),
                 size: 18,
@@ -47,11 +47,11 @@ class ActivityFilterBar extends ConsumerWidget {
     );
   }
 
-  void _toggleActivity(WidgetRef ref, String activityName) {
+  void _toggleActivity(WidgetRef ref, String activityIcon) {
     final current = ref.read(venueFilterProvider).activities;
-    final updated = current.contains(activityName)
-        ? current.where((a) => a != activityName).toList()
-        : [...current, activityName];
+    final updated = current.contains(activityIcon)
+        ? current.where((a) => a != activityIcon).toList()
+        : [...current, activityIcon];
     ref.read(venueFilterProvider.notifier).update(activities: updated);
   }
 

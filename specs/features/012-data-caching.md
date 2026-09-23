@@ -1,6 +1,6 @@
 # Feature 012: Daten-Caching + Datenbank-Einführung
 
-## Status: draft
+## Status: done
 ## Owner: TBD
 ## Depends on: 003, 004
 

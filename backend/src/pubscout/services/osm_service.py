@@ -1,3 +1,4 @@
+import asyncio
 import math
 from dataclasses import dataclass
 
@@ -12,7 +13,9 @@ from pubscout.services.activity_service import (
     list_activities,
     match_activities,
 )
+from pubscout.services.cache_service import CacheService
 from pubscout.services.rate_limiter import RateLimiter
+from pubscout.services.single_flight import SingleFlight
 
 KILOMETERS_PER_DEGREE_LATITUDE = 111.32
 OVERPASS_QUERY_TIMEOUT_SECONDS = 25
@@ -21,6 +24,8 @@ HTTP_REQUEST_TIMEOUT_SECONDS = (
     OVERPASS_QUERY_TIMEOUT_SECONDS + HTTP_TIMEOUT_MARGIN_SECONDS
 )
 OVERPASS_MIN_REQUEST_INTERVAL_SECONDS = 1.0
+# Overpass grants few parallel slots per IP; parallel queries end in HTTP 429.
+OVERPASS_MAX_CONCURRENT_REQUESTS = 1
 OVERPASS_RUNTIME_ERROR_MARKER = "runtime error"
 OVERPASS_TIMEOUT_MARKER = "timed out"
 VENUE_AMENITY_FILTER = '["amenity"~"^(pub|bar)$"]'
@@ -52,13 +57,18 @@ class OverpassClient:
         self._rate_limiter = rate_limiter or RateLimiter(
             OVERPASS_MIN_REQUEST_INTERVAL_SECONDS
         )
+        self._concurrency = asyncio.Semaphore(OVERPASS_MAX_CONCURRENT_REQUESTS)
 
     @property
     def rate_limiter(self) -> RateLimiter:
         return self._rate_limiter
 
     async def query(self, overpass_query: str) -> dict:
-        await self._rate_limiter.wait_for_slot()
+        async with self._concurrency:
+            await self._rate_limiter.wait_for_slot()
+            return await self._post(overpass_query)
+
+    async def _post(self, overpass_query: str) -> dict:
         try:
             response = await self._http_client.post(
                 self._api_url,
@@ -97,8 +107,18 @@ def _raise_on_runtime_error(remark: str) -> None:
 
 
 class OsmService:
-    def __init__(self, overpass_client: OverpassClient) -> None:
+    def __init__(
+        self,
+        overpass_client: OverpassClient,
+        cache: "CacheService | None" = None,
+    ) -> None:
         self._overpass_client = overpass_client
+        self._cache = cache
+        self._single_flight: SingleFlight[list[VenueResponse]] = SingleFlight()
+
+    @property
+    def cache(self) -> "CacheService | None":
+        return self._cache
 
     async def fetch_venues(
         self,
@@ -110,9 +130,41 @@ class OsmService:
         requested = _resolve_activities(activities)
         if not requested:
             return []
+        if self._cache is None:
+            return await self._query_overpass(lat, lng, radius_km, requested)
+        cache_key = CacheService.make_key(lat, lng, radius_km, activities)
+        # Identical concurrent requests share one cache lookup + Overpass query,
+        # including its error, instead of queueing up duplicate queries.
+        return await self._single_flight.run(
+            cache_key,
+            lambda: self._cached_query(cache_key, lat, lng, radius_km, requested),
+        )
+
+    async def _cached_query(
+        self,
+        cache_key: str,
+        lat: float,
+        lng: float,
+        radius_km: float,
+        activities: list[ActivityDefinition],
+    ) -> list[VenueResponse]:
+        cached = await self._cache.get(cache_key)
+        if cached is not None:
+            return [VenueResponse(**venue) for venue in cached]
+        venues = await self._query_overpass(lat, lng, radius_km, activities)
+        await self._cache.put(cache_key, [venue.model_dump() for venue in venues])
+        return venues
+
+    async def _query_overpass(
+        self,
+        lat: float,
+        lng: float,
+        radius_km: float,
+        activities: list[ActivityDefinition],
+    ) -> list[VenueResponse]:
         bounding_box = calculate_bounding_box(lat, lng, radius_km)
         payload = await self._overpass_client.query(
-            build_overpass_query(bounding_box, requested)
+            build_overpass_query(bounding_box, activities)
         )
         return parse_overpass_response(payload)
 
