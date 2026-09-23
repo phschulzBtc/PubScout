@@ -415,23 +415,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
     return venues.map((venue) {
       final isFav = favoriteIds.contains(venue.osmId);
+      final isSelected = _selectedVenue == venue;
       return Marker(
         point: LatLng(venue.latitude, venue.longitude),
-        width: 44,
-        height: 52,
+        width: isSelected ? 52 : 44,
+        height: isSelected ? 60 : 52,
         child: GestureDetector(
           onTap: () => _showVenuePopup(venue),
-          child: _VenueMarkerIcon(isFavorite: isFav),
+          child: _VenueMarkerIcon(
+            isFavorite: isFav,
+            isSelected: isSelected,
+          ),
         ),
       );
     }).toList();
   }
 
   void _showVenuePopup(Venue venue) {
+    setState(() => _selectedVenue = venue);
+
     // On wider screens, show in side panel
     final width = MediaQuery.of(context).size.width;
     if (width > 600) {
-      _selectVenue(venue);
+      _mapController.move(
+        LatLng(venue.latitude, venue.longitude),
+        _mapController.camera.zoom,
+      );
       return;
     }
 
@@ -452,23 +461,27 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         userLat: userLat,
         userLng: userLng,
       ),
-    );
+    ).whenComplete(() => setState(() => _selectedVenue = null));
   }
 }
 
 class _VenueMarkerIcon extends StatelessWidget {
   final bool isFavorite;
+  final bool isSelected;
 
-  const _VenueMarkerIcon({this.isFavorite = false});
+  const _VenueMarkerIcon({this.isFavorite = false, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
+    final double size = isSelected ? 46 : 38;
+    final double iconSize = isSelected ? 24 : 20;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 38,
-          height: 38,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -479,21 +492,28 @@ class _VenueMarkerIcon extends StatelessWidget {
             ),
             shape: BoxShape.circle,
             border: Border.all(
-              color: isFavorite ? pubScoutAmber : Colors.white,
-              width: 2.5,
+              color: isSelected
+                  ? Colors.white
+                  : isFavorite
+                      ? pubScoutAmber
+                      : Colors.white,
+              width: isSelected ? 3.5 : 2.5,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
-                blurRadius: 6,
-                offset: Offset(0, 3),
+                color: isSelected
+                    ? pubScoutGreen.withValues(alpha: 0.5)
+                    : Colors.black26,
+                blurRadius: isSelected ? 12 : 6,
+                spreadRadius: isSelected ? 2 : 0,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Icon(
             isFavorite ? Icons.favorite : Icons.sports_bar,
             color: Colors.white,
-            size: 20,
+            size: iconSize,
           ),
         ),
         // Pin triangle
