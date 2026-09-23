@@ -21,11 +21,18 @@ def create_osm_service(
 async def osm_service_lifespan(app: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
     cache = CacheService(settings.cache_db_path, settings.cache_ttl_hours)
     await cache.init()
-    async with httpx.AsyncClient() as http_client:
-        app.state.osm_service = create_osm_service(http_client, cache=cache)
-        app.state.cache_service = cache
-        yield http_client
-    await cache.close()
+    try:
+        async with httpx.AsyncClient() as http_client:
+            app.state.osm_service = create_osm_service(http_client, cache=cache)
+            app.state.cache_service = cache
+            try:
+                yield http_client
+            finally:
+                # Never leave services with a closed client/cache behind.
+                del app.state.osm_service
+                del app.state.cache_service
+    finally:
+        await cache.close()
 
 
 def get_osm_service(request: Request) -> OsmService:
