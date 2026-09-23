@@ -84,7 +84,7 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('entfernt'), findsOneWidget);
+    expect(find.text('Entfernung'), findsOneWidget);
   });
 
   testWidgets('hides distance when no user location', (tester) async {
