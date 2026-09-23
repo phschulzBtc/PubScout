@@ -12,6 +12,7 @@ from pubscout.services.activity_service import (
     list_activities,
     match_activities,
 )
+from pubscout.services.cache_service import CacheService
 from pubscout.services.rate_limiter import RateLimiter
 
 KILOMETERS_PER_DEGREE_LATITUDE = 111.32
@@ -97,8 +98,17 @@ def _raise_on_runtime_error(remark: str) -> None:
 
 
 class OsmService:
-    def __init__(self, overpass_client: OverpassClient) -> None:
+    def __init__(
+        self,
+        overpass_client: OverpassClient,
+        cache: "CacheService | None" = None,
+    ) -> None:
         self._overpass_client = overpass_client
+        self._cache = cache
+
+    @property
+    def cache(self) -> "CacheService | None":
+        return self._cache
 
     async def fetch_venues(
         self,
@@ -110,11 +120,27 @@ class OsmService:
         requested = _resolve_activities(activities)
         if not requested:
             return []
+
+        # Try cache first
+        if self._cache:
+            cache_key = CacheService.make_key(lat, lng, radius_km, activities)
+            cached = await self._cache.get(cache_key)
+            if cached is not None:
+                return [VenueResponse(**v) for v in cached]
+
         bounding_box = calculate_bounding_box(lat, lng, radius_km)
         payload = await self._overpass_client.query(
             build_overpass_query(bounding_box, requested)
         )
-        return parse_overpass_response(payload)
+        venues = parse_overpass_response(payload)
+
+        # Store in cache
+        if self._cache:
+            await self._cache.put(
+                cache_key, [v.model_dump() for v in venues]
+            )
+
+        return venues
 
 
 def _resolve_activities(icons: list[str] | None) -> list[ActivityDefinition]:
