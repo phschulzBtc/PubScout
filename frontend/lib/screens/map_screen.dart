@@ -434,15 +434,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void _showVenuePopup(Venue venue) {
     setState(() => _selectedVenue = venue);
 
+    // Zoom to the selected venue
+    final zoom = _mapController.camera.zoom < 16
+        ? 16.0
+        : _mapController.camera.zoom;
+    _mapController.move(LatLng(venue.latitude, venue.longitude), zoom);
+
     // On wider screens, show in side panel
     final width = MediaQuery.of(context).size.width;
-    if (width > 600) {
-      _mapController.move(
-        LatLng(venue.latitude, venue.longitude),
-        _mapController.camera.zoom,
-      );
-      return;
-    }
+    if (width > 600) return;
 
     final userLocation = ref.read(userLocationProvider);
     double? userLat;
