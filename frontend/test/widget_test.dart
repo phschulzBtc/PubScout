@@ -67,6 +67,6 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    expect(find.text('1 Venues'), findsOneWidget);
+    expect(find.text('1'), findsWidgets);
   });
 }

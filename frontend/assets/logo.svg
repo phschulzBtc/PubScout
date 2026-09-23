@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#1B4332"/>
+  <!-- Inner circle -->
+  <circle cx="256" cy="256" r="210" fill="#2D6A4F"/>
+  <!-- Beer mug body -->
+  <rect x="160" y="180" width="140" height="170" rx="16" fill="#D4A373"/>
+  <!-- Beer mug handle -->
+  <path d="M300 210 Q340 210 340 250 Q340 290 300 290" fill="none" stroke="#D4A373" stroke-width="20" stroke-linecap="round"/>
+  <!-- Beer foam -->
+  <ellipse cx="230" cy="185" rx="75" ry="20" fill="#FEFAE0"/>
+  <circle cx="195" cy="175" r="15" fill="#FEFAE0"/>
+  <circle cx="230" cy="170" r="18" fill="#FEFAE0"/>
+  <circle cx="265" cy="175" r="14" fill="#FEFAE0"/>
+  <!-- Map pin -->
+  <g transform="translate(330, 130) scale(0.7)">
+    <path d="M50 0 C22 0 0 22 0 50 C0 85 50 130 50 130 C50 130 100 85 100 50 C100 22 78 0 50 0Z" fill="#E76F51"/>
+    <circle cx="50" cy="48" r="18" fill="#FEFAE0"/>
+  </g>
+  <!-- Text arc hint lines (decorative) -->
+  <circle cx="256" cy="400" r="4" fill="#95D5B2"/>
+  <circle cx="240" cy="402" r="3" fill="#95D5B2"/>
+  <circle cx="272" cy="402" r="3" fill="#95D5B2"/>
+</svg>
