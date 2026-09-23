@@ -1,12 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/theme.dart';
 import '../models/venue.dart';
+import '../providers/favorites_provider.dart';
 
-class VenueDetailSheet extends StatelessWidget {
+class VenueDetailSheet extends ConsumerWidget {
   final Venue venue;
   final double? userLat;
   final double? userLng;
@@ -19,8 +21,10 @@ class VenueDetailSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final favList = ref.watch(favoritesProvider).value;
+    final isFavorite = favList?.any((v) => v.osmId == venue.osmId) ?? false;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.45,
@@ -54,7 +58,7 @@ class VenueDetailSheet extends StatelessWidget {
                     ),
                   ),
 
-                  // Header: icon + name
+                  // Header: icon + name + favorite
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -86,6 +90,14 @@ class VenueDetailSheet extends StatelessWidget {
                             ],
                           ],
                         ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? pubScoutCoral : theme.colorScheme.outline,
+                        ),
+                        onPressed: () =>
+                            ref.read(favoritesProvider.notifier).toggle(venue),
                       ),
                     ],
                   ),
