@@ -10,12 +10,14 @@ import 'package:latlong2/latlong.dart';
 import '../core/constants.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
+import '../providers/favorites_provider.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
 import '../widgets/activity_filter_bar.dart';
 import '../widgets/radius_selector.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/venue_detail_sheet.dart';
+import 'favorites_screen.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -89,6 +91,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ),
         actions: [
           _buildVenueCount(context, venues),
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            tooltip: 'Favoriten',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+            ),
+          ),
         ],
       ),
       body: Column(
@@ -285,14 +294,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   List<Marker> _buildMarkers(List<Venue> venues) {
+    final favoriteIds = ref
+            .watch(favoritesProvider)
+            .value
+            ?.map((v) => v.osmId)
+            .toSet() ??
+        {};
+
     return venues.map((venue) {
+      final isFav = favoriteIds.contains(venue.osmId);
       return Marker(
         point: LatLng(venue.latitude, venue.longitude),
         width: 44,
         height: 52,
         child: GestureDetector(
           onTap: () => _showVenuePopup(venue),
-          child: const _VenueMarkerIcon(),
+          child: _VenueMarkerIcon(isFavorite: isFav),
         ),
       );
     }).toList();
@@ -321,7 +338,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 }
 
 class _VenueMarkerIcon extends StatelessWidget {
-  const _VenueMarkerIcon();
+  final bool isFavorite;
+
+  const _VenueMarkerIcon({this.isFavorite = false});
 
   @override
   Widget build(BuildContext context) {
@@ -332,13 +351,18 @@ class _VenueMarkerIcon extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [pubScoutGreen, pubScoutGreenDark],
+              colors: isFavorite
+                  ? [pubScoutAmber, pubScoutCoral]
+                  : [pubScoutGreen, pubScoutGreenDark],
             ),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2.5),
+            border: Border.all(
+              color: isFavorite ? pubScoutAmber : Colors.white,
+              width: 2.5,
+            ),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
@@ -347,12 +371,16 @@ class _VenueMarkerIcon extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(Icons.sports_bar, color: Colors.white, size: 20),
+          child: Icon(
+            isFavorite ? Icons.favorite : Icons.sports_bar,
+            color: Colors.white,
+            size: 20,
+          ),
         ),
         // Pin triangle
         CustomPaint(
           size: const Size(12, 8),
-          painter: _PinTrianglePainter(),
+          painter: _PinTrianglePainter(isFavorite: isFavorite),
         ),
       ],
     );
@@ -360,10 +388,13 @@ class _VenueMarkerIcon extends StatelessWidget {
 }
 
 class _PinTrianglePainter extends CustomPainter {
+  final bool isFavorite;
+  _PinTrianglePainter({this.isFavorite = false});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = pubScoutGreenDark
+      ..color = isFavorite ? pubScoutCoral : pubScoutGreenDark
       ..style = PaintingStyle.fill;
     final path = ui.Path()
       ..moveTo(0, 0)
