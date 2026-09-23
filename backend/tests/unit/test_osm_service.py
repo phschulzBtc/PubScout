@@ -123,8 +123,15 @@ async def test_client_raises_rate_limit_error_on_http_429(make_client):
         await client.query("q")
 
 
-async def test_client_raises_api_error_on_server_error(make_client):
+async def test_client_raises_timeout_error_on_gateway_timeout(make_client):
     client = make_client(lambda _: httpx.Response(504))
+
+    with pytest.raises(OverpassTimeoutError):
+        await client.query("q")
+
+
+async def test_client_raises_api_error_on_server_error(make_client):
+    client = make_client(lambda _: httpx.Response(500))
 
     with pytest.raises(OverpassApiError):
         await client.query("q")
