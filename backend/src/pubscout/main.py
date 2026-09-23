@@ -1,9 +1,7 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
-from fastapi import Request
 
 from pubscout.config import settings
 from pubscout.dependencies import osm_service_lifespan
