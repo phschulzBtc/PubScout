@@ -10,6 +10,7 @@ import '../models/venue.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
 import '../widgets/activity_filter_bar.dart';
+import '../widgets/radius_selector.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/venue_detail_sheet.dart';
 
@@ -116,7 +117,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ref.read(venueFilterProvider.notifier).update(lat: lat, lng: lng);
             },
           ),
-          const ActivityFilterBar(),
+          const Row(
+            children: [
+              Expanded(child: ActivityFilterBar()),
+              Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: RadiusSelector(),
+              ),
+            ],
+          ),
           Expanded(
             child: Stack(
         children: [
@@ -133,6 +142,27 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 urlTemplate:
                     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.pubscout.app',
+              ),
+              CircleLayer(
+                circles: [
+                  CircleMarker(
+                    point: LatLng(
+                      ref.watch(venueFilterProvider).lat,
+                      ref.watch(venueFilterProvider).lng,
+                    ),
+                    radius: ref.watch(venueFilterProvider).radiusKm * 1000,
+                    useRadiusInMeter: true,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.08),
+                    borderColor: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.3),
+                    borderStrokeWidth: 1.5,
+                  ),
+                ],
               ),
               venues.when(
                 data: (list) => MarkerLayer(markers: _buildMarkers(list)),

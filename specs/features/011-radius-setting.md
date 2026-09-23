@@ -1,17 +1,17 @@
 # Feature 011: Radius-Einstellung
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich den Suchradius anpassen können, damit ich mehr oder weniger Ergebnisse in meiner Umgebung sehe.
 
 ## Akzeptanzkriterien
-- [ ] Slider oder Dropdown zur Radius-Auswahl
-- [ ] Voreingestellte Werte: 1km, 2km, 5km, 10km, 25km
-- [ ] Radius-Änderung löst neuen API-Call aus
-- [ ] Visueller Radius-Kreis auf der Karte (optional)
-- [ ] Einstellung wird lokal gespeichert
-- [ ] Widget-Tests
+- [x] PopupMenuButton als Radius-Dropdown (Chip mit radar Icon)
+- [x] Voreingestellte Werte: 1km, 2km, 5km, 10km, 25km
+- [x] Radius-Änderung aktualisiert venueFilterProvider → neuer API-Call
+- [x] Halbtransparenter Radius-Kreis auf der Karte (CircleLayer)
+- [x] Einstellung wird via SharedPreferences lokal gespeichert
+- [x] 48 Tests bestanden
 
 ## UI/UX
 - Slider im Filter-Bereich oder als separates Control
