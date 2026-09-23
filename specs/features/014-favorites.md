@@ -1,6 +1,6 @@
 # Feature 014: Favoriten
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich Bars als Favoriten speichern können, damit ich sie schnell wiederfinden kann.
