@@ -15,16 +15,16 @@ abstract class ApiClient {
   });
 }
 
+BaseOptions backendBaseOptions() => BaseOptions(
+      baseUrl: backendBaseUrl,
+      connectTimeout: backendConnectTimeout,
+      receiveTimeout: backendReceiveTimeout,
+    );
+
 class HttpApiClient implements ApiClient {
   final Dio _dio;
 
-  HttpApiClient({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
-              baseUrl: backendBaseUrl,
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 30),
-            ));
+  HttpApiClient({Dio? dio}) : _dio = dio ?? Dio(backendBaseOptions());
 
   @override
   Future<List<Activity>> fetchActivities() async {
