@@ -34,6 +34,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Timer? _debounceTimer;
   bool _initialLocationSet = false;
   Venue? _selectedVenue;
+  // Tracked from map events: MapController.camera throws until FlutterMap
+  // has been rendered once, but markers are built during the first build.
+  double _currentZoom = defaultZoomLevel;
 
   @override
   void dispose() {
@@ -43,6 +46,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   void _onMapEvent(MapEvent event) {
+    _currentZoom = event.camera.zoom;
     if (event is MapEventMoveEnd) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(const Duration(milliseconds: 500), () {
@@ -415,8 +419,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             .toSet() ??
         {};
 
-    final zoom = _mapController.camera.zoom;
-    final clusters = _clusterVenues(venues, zoom);
+    final clusters = _clusterVenues(venues, _currentZoom);
 
     return clusters.map((cluster) {
       if (cluster.length == 1) {
@@ -453,7 +456,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             // Zoom into the cluster
             _mapController.move(
               LatLng(avgLat, avgLng),
-              math.min(zoom + 2, 18),
+              math.min(_currentZoom + 2, 18),
             );
           },
           child: _ClusterIcon(count: cluster.length),
