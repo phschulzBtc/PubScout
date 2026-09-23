@@ -54,6 +54,8 @@ class VenueListPanel extends ConsumerWidget {
         return ListTile(
           selected: isSelected,
           selectedTileColor: pubScoutGreen.withValues(alpha: 0.08),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: Container(
             width: 40,
             height: 40,
@@ -75,17 +77,19 @@ class VenueListPanel extends ConsumerWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
-          subtitle: venue.address.isNotEmpty
-              ? Text(venue.address,
-                  maxLines: 1, overflow: TextOverflow.ellipsis)
-              : null,
+          subtitle: Text(
+              venue.address.isNotEmpty ? venue.address : 'Keine Adresse',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: venue.address.isEmpty
+                  ? TextStyle(color: theme.colorScheme.outlineVariant)
+                  : null),
           trailing: venue.activities.isNotEmpty
               ? Text('${venue.activities.length}',
                   style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant))
               : null,
           onTap: () => onVenueTap(venue),
-          dense: true,
         );
       },
     );
