@@ -153,9 +153,11 @@ def calculate_bounding_box(
 def build_overpass_query(
     bounding_box: BoundingBox, activities: list[ActivityDefinition]
 ) -> str:
+    # Bounding box must come first: placed last, Overpass evaluates the regex
+    # filters globally and the request ends in HTTP 504.
     statements = "\n".join(
-        f"  nwr{VENUE_AMENITY_FILTER}{_tag_filter(osm_tag)}"
-        f"{bounding_box.to_overpass()};"
+        f"  nwr{bounding_box.to_overpass()}{VENUE_AMENITY_FILTER}"
+        f"{_tag_filter(osm_tag)};"
         for activity in activities
         for osm_tag in activity.osm_tags
     )
