@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from fastapi import APIRouter
 
-from pubscout.db.session import get_session
-from pubscout.models.activity import Activity
 from pubscout.schemas.activity import ActivityResponse
+from pubscout.services.activity_service import list_activities
 
 router = APIRouter(prefix="/activities", tags=["activities"])
 
 
 @router.get("", response_model=list[ActivityResponse])
-async def list_activities(session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(Activity).order_by(Activity.name))
-    return result.scalars().all()
+async def get_activities() -> list[ActivityResponse]:
+    return [
+        ActivityResponse(
+            name=activity.name, icon=activity.icon, osm_tags=list(activity.osm_tags)
+        )
+        for activity in list_activities()
+    ]

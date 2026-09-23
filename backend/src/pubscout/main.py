@@ -1,19 +1,15 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from pubscout.config import settings
-from pubscout.db.seed import seed_activities
-from pubscout.db.session import async_session, init_db
 from pubscout.dependencies import osm_service_lifespan
 from pubscout.routers import activities, venues
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    await init_db()
-    async with async_session() as session:
-        await seed_activities(session)
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     async with osm_service_lifespan(app):
         yield
 

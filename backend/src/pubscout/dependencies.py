@@ -16,7 +16,11 @@ def create_osm_service(http_client: httpx.AsyncClient) -> OsmService:
 async def osm_service_lifespan(app: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
     async with httpx.AsyncClient() as http_client:
         app.state.osm_service = create_osm_service(http_client)
-        yield http_client
+        try:
+            yield http_client
+        finally:
+            # Never leave a service with a closed HTTP client behind.
+            del app.state.osm_service
 
 
 def get_osm_service(request: Request) -> OsmService:

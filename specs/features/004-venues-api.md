@@ -60,14 +60,15 @@ Als Frontend-Entwickler möchte ich Venues nach Standort und Aktivitäten filter
 - `dependencies.py`: `create_osm_service(http_client)` baut `OsmService` mit `settings.overpass_api_url`; `get_osm_service()` liefert die **eine** Instanz aus `app.state` (per `Depends()`), damit alle Requests Connection-Pool und Rate-Limiter teilen.
 - `main.py`: `lifespan` erzeugt den `httpx.AsyncClient` und schließt ihn beim Shutdown.
 - `osm_service.py` (003): HTTP 504 von Overpass → `OverpassTimeoutError` (vorher generischer `OverpassApiError` → 502).
-- Router nutzt keine DB mehr. `/activities` + DB-Code werden in 005 umgestellt bzw. entfernt.
+- Router nutzt keine DB mehr. `/activities` + DB-Code werden in 005 umgestellt bzw. entfernt (erledigt).
 
 ## Entscheidungen
 - **Filter per Icon-Kennung, nicht per Name** (Entscheidung Dev A, 23.09.2026): stabil und URL-sicher, Namen sind Anzeige-Texte („Quiz/Trivia“). Unbekannte Werte → 422 statt stiller Ignorierung, damit Contract-Abweichungen sofort auffallen.
   ⚠️ **Hinweis an Dev B:** `ActivityFilterBar` und `MockApiClient` nutzen aktuell `activity.name` → echte API antwortet mit 422. Umstellung auf `activity.icon` nötig.
 - **Max. Radius 25 km** (Entscheidung Dev A): deckt alle Frontend-Optionen (1/2/5/10/25 km) ab und schützt Overpass vor teuren Queries.
 - **lat exklusiv ±90**: am Pol ist die Längengrad-Ausdehnung der Bounding-Box undefiniert (cos 90° = 0).
-- Kein Retry bei sporadischen Overpass-504 (Live ~1 von 4 Requests) — Client bekommt 504 und kann neu laden; Caching (012) entschärft das.
+- Kein Retry bei vereinzelten Overpass-504 — Client bekommt 504 und kann neu laden; Caching (012) entschärft das. (Die zunächst vermutete Rate „~1 von 4“ war größtenteils ein Query-Bug, behoben in 005 — siehe 003.)
+- Große Radien sind langsam: 10 km über alle Activities dauerte live 21,6 s (Overpass-Timeout 25 s). Bei 25 km sind Timeouts wahrscheinlicher → ggf. mit Dev B abstimmen oder in 012 per Caching lösen.
 - **Feste Fehlermeldungen** pro Status statt Upstream-Text (keine httpx-/Overpass-Interna an Clients); Originalfehler wird geloggt.
 
 ## Code Review (Subagent)
