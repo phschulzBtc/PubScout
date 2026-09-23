@@ -1,14 +1,27 @@
 # Architecture
 
+## MVP: Backend als OSM-Proxy (kein DB)
+
+Das Backend ist ein schlanker Proxy/Transformer:
+```
+Frontend → Backend → Overpass API → Transform → Frontend
+```
+
+Keine Datenbank im MVP. Activities sind eine statische Liste.
+DB kommt später für User-Features (Bewertungen, Accounts, Caching).
+
 ## Backend Structure (`backend/src/pubscout/`)
-- `main.py` — FastAPI app entry point, lifespan for DB init + seed
+- `main.py` — FastAPI app entry point
 - `config.py` — Settings via pydantic-settings (.env support)
-- `models/` — SQLModel database models (Venue, Activity, VenueActivity)
 - `schemas/` — Pydantic request/response schemas
 - `routers/` — API route handlers (venues, activities)
-- `services/` — Business logic (OSM client, venue service)
-- `db/session.py` — Async DB session management (aiosqlite)
-- `db/seed.py` — Default activity seed data
+- `services/` — Business logic
+  - `osm_service.py` — Overpass API Client, Query-Builder, Response-Transformer
+  - `activity_service.py` — Statische Activity-Liste und OSM-Tag-Mapping
+
+### Nicht mehr im MVP
+- ~~`models/`~~ — DB Models entfallen
+- ~~`db/`~~ — DB Session/Seed entfallen
 
 ## Frontend Structure (`frontend/lib/`)
 - `main.dart` — Entry point with ProviderScope
@@ -21,10 +34,10 @@
 
 ## API Endpoints
 - `GET /health` — Health check
-- `GET /activities` — List all activity types
-- `GET /venues` — List venues with activities
+- `GET /activities` — Statische Liste aller Aktivitätstypen
+- `GET /venues?lat=X&lng=Y&radius_km=Z&activities=darts,pool` — Venues via Overpass API
 
-## Database
-- MVP: SQLite + aiosqlite (async)
-- Later: PostgreSQL + PostGIS
-- Models use SQLModel (SQLAlchemy + Pydantic combined)
+## Architektur-Entscheidung: Kein DB im MVP
+**Entscheidung**: Backend ohne Datenbank, reiner OSM-Proxy
+**Warum**: Alle Venue-Daten kommen von OSM. DB ist Overengineering solange es keine User-generierten Daten gibt.
+**Wann DB**: Wenn Bewertungen, Accounts, serverseitige Favoriten oder Caching bei hoher Last benötigt werden.

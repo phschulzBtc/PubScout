@@ -1,21 +1,23 @@
-# Feature 012: Daten-Caching
+# Feature 012: Daten-Caching + Datenbank-Einführung
 
 ## Status: draft
+## Owner: TBD
+## Depends on: 003, 004
 
 ## User Story
-Als Nutzer möchte ich dass die App schnell reagiert und nicht bei jeder Kartenbewegung die Daten neu laden muss.
+Als Nutzer möchte ich dass die App schnell reagiert und nicht bei jeder Anfrage die Overpass API abfragen muss.
 
 ## Akzeptanzkriterien
-- [ ] Backend cached OSM-Abfragen in SQLite
+- [ ] Datenbank einführen (PostgreSQL + PostGIS oder SQLite + SpatiaLite)
+- [ ] Venue-Daten aus Overpass werden in DB gecached
 - [ ] Cache-Invalidierung nach konfiguriertem Zeitraum (z.B. 24h)
-- [ ] Venues aus Cache werden bevorzugt geladen
-- [ ] Nur bei Cache-Miss wird Overpass API abgefragt
+- [ ] API fragt zuerst Cache, dann Overpass als Fallback
 - [ ] Cache-Statistik im Health-Endpoint
-- [ ] Frontend cached letzte Venue-Liste lokal
+- [ ] DB-Migrations-Setup (Alembic)
 - [ ] Unit-Tests für Cache-Logik
 
 ## Technische Notizen
-- Backend: `cached_at` Timestamp auf Venue-Records
-- Backend: Hintergrund-Job für Cache-Refresh (optional)
-- Frontend: Riverpod cached automatisch Provider-State
-- SQLite ist schnell genug für MVP-Caching
+- Dieses Feature führt die Datenbank ein die im MVP bewusst weggelassen wurde
+- Wird relevant bei: vielen Nutzern (Overpass Rate-Limiting), Performance-Anforderungen, oder User-Features
+- Entscheidung ob PostgreSQL oder SQLite wird zu diesem Zeitpunkt getroffen
+- Die bestehenden DB-Models aus Feature 002 können als Basis reaktiviert werden
