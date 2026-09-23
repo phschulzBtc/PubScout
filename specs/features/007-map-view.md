@@ -1,6 +1,6 @@
 # Feature 007: Karten-Ansicht
 
-## Status: draft
+## Status: done
 ## Owner: Dev B (Frontend)
 ## Depends on: 006
 
@@ -8,15 +8,16 @@
 Als Nutzer möchte ich eine Karte mit Venue-Markern sehen, damit ich Bars und Kneipen in meiner Umgebung visuell finden kann.
 
 ## Akzeptanzkriterien
-- [ ] flutter_map mit OpenStreetMap Tiles (bereits Grundlage in 001)
-- [ ] User-Location ermitteln (Browser Geolocation API)
-- [ ] Karte zentriert auf User-Position (Fallback: Berlin)
-- [ ] Venue-Marker auf der Karte anzeigen
-- [ ] Marker mit Activity-Icon oder farbiger Markierung
-- [ ] Marker-Tap zeigt Venue-Name als Popup/Tooltip
-- [ ] Karte lädt Venues beim Bewegen/Zoomen nach (Debounced)
-- [ ] Loading-Indicator während Venues geladen werden
-- [ ] Widget-Tests für Map-Screen
+- [x] flutter_map mit OpenStreetMap Tiles
+- [x] User-Location ermitteln (geolocator, Browser Geolocation API)
+- [x] Karte zentriert auf User-Position (Fallback: Berlin)
+- [x] Venue-Marker auf der Karte (grüne Kreise mit sports_bar Icon)
+- [x] Marker-Tap öffnet BottomSheet mit Name, Adresse, Activity-Chips
+- [x] Karte lädt Venues beim Bewegen nach (500ms Debounce)
+- [x] Loading-Indicator ("Venues laden...") + Error-Card
+- [x] Venue-Anzahl in AppBar
+- [x] MyLocation FAB zum Zurückspringen
+- [x] Widget-Tests (30 Tests gesamt)
 
 ## UI/UX
 - Karte füllt den gesamten Bildschirm (unter AppBar)
