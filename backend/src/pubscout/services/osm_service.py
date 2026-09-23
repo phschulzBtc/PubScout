@@ -76,6 +76,8 @@ class OverpassClient:
 def _checked_json(response: httpx.Response) -> dict:
     if response.status_code == httpx.codes.TOO_MANY_REQUESTS:
         raise OverpassRateLimitError("Overpass API rate limit exceeded")
+    if response.status_code == httpx.codes.GATEWAY_TIMEOUT:
+        raise OverpassTimeoutError("Overpass API gateway timeout")
     if response.is_error:
         raise OverpassApiError(f"Overpass API returned {response.status_code}")
     try:

@@ -9,16 +9,17 @@
    - Gibt konkretes Feedback mit Datei:Zeile Referenzen
    - Findings einarbeiten bevor gemerged wird
 5. **Spec aktualisieren** — Status auf `done`, Checkboxen abhaken
-6. **Commit + Merge** — Nach `main` mergen:
-   1. `git switch main && git pull` — **immer vorher pullen**, damit Änderungen des anderen Devs drin sind
-   2. `git merge feature/NNN-description`
-   3. Tests auf `main` erneut laufen lassen, erst dann pushen
+6. **Commit + Pull Request** — Merge nach `main` nur per PR:
+   1. `git fetch origin` — **immer vorher pullen/fetchen**, damit Änderungen des anderen Devs bekannt sind; bei Konflikten `origin/main` in den Feature-Branch mergen und Tests erneut laufen lassen
+   2. `git push -u origin feature/NNN-description`
+   3. `gh pr create --base main` — PR-Beschreibung: Zusammenfassung, Testergebnis, Hinweise an den anderen Dev (z.B. Contract-Änderungen)
+   4. Merge des PR auf GitHub; danach lokal `git switch main && git pull`
 
 ## Git Branching
-- `main` — Integration + Stable (Feature-Branches werden hierher gemergt)
+- `main` — Integration + Stable (Feature-Branches werden per PR hierher gemergt)
 - `feature/NNN-description` — Feature Branches (von aktuellem `main` abzweigen)
 - `fix/NNN-description` — Bugfix Branches
-- Niemals direkt auf `main` committen — nur Merges von Feature-/Fix-Branches
+- Niemals direkt auf `main` committen oder pushen — Änderungen nur per Pull Request
 - Kein `develop`-Branch (Entscheidung 23.09.2026: zwei Devs, getrennte Verzeichnisse → Integration-Branch unnötig)
 
 ## Paralleles Arbeiten (2 Entwickler)
