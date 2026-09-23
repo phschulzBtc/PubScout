@@ -1,8 +1,25 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from pubscout.config import settings
+from pubscout.db.seed import seed_activities
+from pubscout.db.session import async_session, init_db
+from pubscout.routers import activities, venues
 
-app = FastAPI(title=settings.app_name, version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    async with async_session() as session:
+        await seed_activities(session)
+    yield
+
+
+app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
+
+app.include_router(activities.router)
+app.include_router(venues.router)
 
 
 @app.get("/health")

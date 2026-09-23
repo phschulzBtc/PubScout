@@ -29,12 +29,16 @@
             # Database
             sqlite
 
+            # Native libs for Python C extensions (greenlet etc.)
+            stdenv.cc.cc.lib
+
             # Tools
             pre-commit
             git
           ];
 
           shellHook = ''
+            export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
             echo "PubScout dev environment loaded"
             echo "  Flutter: $(flutter --version 2>/dev/null | head -1 || echo 'available')"
             echo "  Python:  $(python3 --version)"
