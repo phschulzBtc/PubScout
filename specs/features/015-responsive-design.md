@@ -1,6 +1,6 @@
 # Feature 015: Responsive Design
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich die App auf jedem Gerät optimal nutzen können, egal ob Desktop, Tablet oder Smartphone.
