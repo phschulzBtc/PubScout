@@ -37,3 +37,4 @@ Als Frontend-Entwickler möchte ich Venues nach Standort und Aktivitäten filter
 - Keine Pagination im MVP (Overpass liefert begrenzte Ergebnisse pro Radius)
 - Kein `id` Feld — `osm_id` ist der eindeutige Identifier
 - Kein `distance_km` im MVP (kann clientseitig berechnet werden)
+- Activities in der Venue-Response enthalten KEIN `osm_tags` Feld (nur `name` + `icon`). `osm_tags` wird nur vom `/activities` Endpoint geliefert.
