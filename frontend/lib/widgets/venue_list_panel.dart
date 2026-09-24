@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/geo_utils.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
+import '../providers/location_provider.dart';
+import '../providers/venue_provider.dart';
 
 class VenueListPanel extends ConsumerWidget {
   final List<Venue> venues;
@@ -26,30 +29,54 @@ class VenueListPanel extends ConsumerWidget {
             ?.map((v) => v.osmId)
             .toSet() ??
         {};
+    final userLoc = ref.watch(userLocationProvider).value;
+    final filter = ref.watch(venueFilterProvider);
 
     if (venues.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.search_off,
-                size: 48, color: theme.colorScheme.outlineVariant),
-            const SizedBox(height: 12),
-            Text('Keine Venues gefunden',
-                style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant)),
-          ],
-        ),
+      return _EmptyState(
+        hasFilters: filter.activities.isNotEmpty ||
+            filter.venueTypes.isNotEmpty,
+        radiusKm: filter.radiusKm,
+        onClearFilters: () {
+          ref.read(venueFilterProvider.notifier).update(
+                activities: [],
+                venueTypes: [],
+              );
+        },
       );
+    }
+
+    // Sort by distance if user location is available
+    final sorted = List<Venue>.from(venues);
+    if (userLoc != null) {
+      sorted.sort((a, b) {
+        final da = distanceKm(
+            userLoc.latitude, userLoc.longitude, a.latitude, a.longitude);
+        final db = distanceKm(
+            userLoc.latitude, userLoc.longitude, b.latitude, b.longitude);
+        return da.compareTo(db);
+      });
+    } else {
+      sorted.sort((a, b) => a.name.compareTo(b.name));
     }
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      itemCount: venues.length,
+      itemCount: sorted.length,
       itemBuilder: (context, index) {
-        final venue = venues[index];
+        final venue = sorted[index];
         final isFav = favoriteIds.contains(venue.osmId);
         final isSelected = selectedVenue == venue;
+
+        String subtitle = venueTypeLabel(venue.venueType);
+        if (userLoc != null) {
+          final dist = distanceKm(userLoc.latitude, userLoc.longitude,
+              venue.latitude, venue.longitude);
+          subtitle += ' · ${formatDistance(dist)}';
+        }
+        if (venue.address.isNotEmpty) {
+          subtitle += ' · ${venue.address}';
+        }
 
         return ListTile(
           selected: isSelected,
@@ -77,13 +104,8 @@ class VenueListPanel extends ConsumerWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
-          subtitle: Text(
-              venue.address.isNotEmpty ? venue.address : 'Keine Adresse',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: venue.address.isEmpty
-                  ? TextStyle(color: theme.colorScheme.outlineVariant)
-                  : null),
+          subtitle: Text(subtitle,
+              maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: venue.activities.isNotEmpty
               ? Text('${venue.activities.length}',
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -102,5 +124,49 @@ class VenueListPanel extends ConsumerWidget {
       'nightclub' => Icons.nightlife,
       _ => Icons.sports_bar,
     };
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final bool hasFilters;
+  final double radiusKm;
+  final VoidCallback onClearFilters;
+
+  const _EmptyState({
+    required this.hasFilters,
+    required this.radiusKm,
+    required this.onClearFilters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.search_off,
+                size: 48, color: theme.colorScheme.outlineVariant),
+            const SizedBox(height: 12),
+            Text(
+              hasFilters
+                  ? 'Keine Venues mit diesen Filtern gefunden'
+                  : 'Keine Venues im Umkreis von ${formatDistance(radiusKm)}',
+              style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            if (hasFilters)
+              FilledButton.tonal(
+                onPressed: onClearFilters,
+                child: const Text('Filter entfernen'),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

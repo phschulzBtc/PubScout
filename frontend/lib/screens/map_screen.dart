@@ -245,8 +245,31 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
           ),
+        if (!showLoading &&
+            !venues.hasError &&
+            (venues.value?.isEmpty ?? false))
+          Positioned(
+            top: 12,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _EmptyResultPill(
+                onClearFilters: _hasActiveFilters()
+                    ? () => ref.read(venueFilterProvider.notifier).update(
+                          activities: [],
+                          venueTypes: [],
+                        )
+                    : null,
+              ),
+            ),
+          ),
       ],
     );
+  }
+
+  bool _hasActiveFilters() {
+    final filter = ref.read(venueFilterProvider);
+    return filter.activities.isNotEmpty || filter.venueTypes.isNotEmpty;
   }
 
   // Mobile: fullscreen map, venues shown via bottom sheet on tap
@@ -716,6 +739,58 @@ class _LoadingPillState extends State<_LoadingPill>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyResultPill extends StatelessWidget {
+  final VoidCallback? onClearFilters;
+
+  const _EmptyResultPill({this.onClearFilters});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.search_off, size: 16),
+          const SizedBox(width: 8),
+          const Text('Keine Venues gefunden',
+              style: TextStyle(fontSize: 13)),
+          if (onClearFilters != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onClearFilters,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: pubScoutGreen,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text('Filter entfernen',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -11,6 +11,7 @@ class ActivityFilterBar extends ConsumerWidget {
     final activities = ref.watch(availableActivitiesProvider);
     final filter = ref.watch(venueFilterProvider);
     final selectedActivities = filter.activities;
+    final counts = ref.watch(activityCountsProvider);
 
     if (activities.isEmpty) {
       return const SizedBox(height: 50);
@@ -27,8 +28,11 @@ class ActivityFilterBar extends ConsumerWidget {
           final activity = activities[index];
           final isSelected = selectedActivities.contains(activity.icon);
 
+          final count = counts[activity.icon] ?? 0;
           return FilterChip(
-            label: Text(activity.name),
+            label: Text(count > 0
+                ? '${activity.name} ($count)'
+                : activity.name),
             selected: isSelected,
             onSelected: (_) => _toggleActivity(ref, activity.icon),
             avatar: Icon(

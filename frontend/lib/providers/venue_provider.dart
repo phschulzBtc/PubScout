@@ -129,6 +129,28 @@ final availableVenueTypesProvider =
     NotifierProvider<_AvailableVenueTypesNotifier, List<String>>(
         _AvailableVenueTypesNotifier.new);
 
+/// Count of venues per activity icon in the current (unfiltered) dataset.
+final activityCountsProvider = Provider<Map<String, int>>((ref) {
+  final venues = ref.watch(venueProvider).value ?? [];
+  final counts = <String, int>{};
+  for (final venue in venues) {
+    for (final a in venue.activities) {
+      counts[a.icon] = (counts[a.icon] ?? 0) + 1;
+    }
+  }
+  return counts;
+});
+
+/// Count of venues per venue type in the current (unfiltered) dataset.
+final venueTypeCountsProvider = Provider<Map<String, int>>((ref) {
+  final venues = ref.watch(venueProvider).value ?? [];
+  final counts = <String, int>{};
+  for (final venue in venues) {
+    counts[venue.venueType] = (counts[venue.venueType] ?? 0) + 1;
+  }
+  return counts;
+});
+
 /// Venues filtered client-side by venue type selection.
 final filteredVenueProvider = Provider<AsyncValue<List<Venue>>>((ref) {
   final venues = ref.watch(venueProvider);

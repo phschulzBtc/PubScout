@@ -7,6 +7,7 @@ const pubScoutAmber = Color(0xFFD4A373);
 const pubScoutCoral = Color(0xFFE76F51);
 const pubScoutCream = Color(0xFFFEFAE0);
 
+
 final pubScoutTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(
     seedColor: pubScoutGreen,

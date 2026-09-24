@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/geo_utils.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
@@ -120,7 +119,7 @@ class VenueDetailSheet extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
-                    _venueTypeLabel(venue.venueType),
+                    venueTypeLabel(venue.venueType),
                     if (venue.address.isNotEmpty) venue.address,
                   ].join(' · '),
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -210,7 +209,7 @@ class VenueDetailSheet extends ConsumerWidget {
               _InfoTile(
                 icon: Icons.near_me,
                 label: 'Entfernung',
-                value: _formatDistance(_distanceKm(
+                value: formatDistance(distanceKm(
                     userLat, userLng, venue.latitude, venue.longitude)),
                 showDivider: venue.openingHours.isNotEmpty ||
                     venue.phone.isNotEmpty ||
@@ -267,43 +266,12 @@ class VenueDetailSheet extends ConsumerWidget {
     };
   }
 
-  static String _venueTypeLabel(String type) {
-    return switch (type) {
-      'pub' => 'Kneipe',
-      'bar' => 'Bar',
-      'biergarten' => 'Biergarten',
-      'nightclub' => 'Nachtclub',
-      _ => type,
-    };
-  }
-
   static String _shortenUrl(String url) {
     return url
         .replaceFirst(RegExp(r'^https?://'), '')
         .replaceFirst(RegExp(r'^www\.'), '')
         .replaceFirst(RegExp(r'/$'), '');
   }
-
-  static String _formatDistance(double km) {
-    if (km < 1) return '${(km * 1000).round()} m';
-    return '${km.toStringAsFixed(1)} km';
-  }
-
-  static double _distanceKm(
-      double lat1, double lng1, double lat2, double lng2) {
-    const earthRadiusKm = 6371.0;
-    final dLat = _toRadians(lat2 - lat1);
-    final dLng = _toRadians(lng2 - lng1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(lat1)) *
-            cos(_toRadians(lat2)) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadiusKm * c;
-  }
-
-  static double _toRadians(double degrees) => degrees * pi / 180;
 
   static Future<void> _openRoute(Venue venue) async {
     final uri = Uri.parse(
