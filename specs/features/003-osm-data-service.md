@@ -38,7 +38,7 @@ async def fetch_venues(lat: float, lng: float, radius_km: float, activities: lis
   `find_activities_by_icons(icons)` löst Filter-Identifier (= `icon`) auf, unbekannte werden ignoriert.
 - `osm_service.py`:
   - `calculate_bounding_box()` — Radius → Bounding-Box (111,32 km/Breitengrad, Längengrad mit cos(lat) skaliert)
-  - `build_overpass_query()` — ein `nwr`-Statement je OSM-Tag, jeweils auf Bounding-Box (zuerst!) + `amenity=pub|bar` beschränkt, `out center tags` (Ways/Relations liefern Mittelpunkt)
+  - `build_overpass_query()` — ein `nwr`-Statement je OSM-Tag, jeweils auf `amenity=pub|bar` + Bounding-Box beschränkt (Reihenfolge der Filter egal), `out center tags` (Ways/Relations liefern Mittelpunkt)
   - `parse_overpass_response()` — Element → `VenueResponse`; Adresse aus `addr:*`; Elemente ohne `name` oder Koordinaten werden übersprungen
   - `OverpassClient` — POST mit eigenem User-Agent, Timeout; Fehler als `OverpassApiError` / `OverpassTimeoutError` / `OverpassRateLimitError` (HTTP 429)
   - `OsmService.fetch_venues()` — Signatur wie Contract, als Methode für Dependency Injection
@@ -50,7 +50,10 @@ async def fetch_venues(lat: float, lng: float, radius_km: float, activities: lis
 - **User-Agent Pflicht**: Overpass antwortet mit HTTP 406 auf den Default-User-Agent von httpx (verifiziert) → `USER_AGENT = "PubScout/0.1 (+repo-URL)"`.
 - **Filter ohne bekannte Activity** → leere Liste ohne Overpass-Request (statt Fehler). Validierung/Fehlermeldung für unbekannte Werte ist Sache des Routers (004).
 - **Leere Filterliste** (`activities=[]`) → leere Liste; `None` → alle Activities.
-- ~~Öffentliche Overpass-Instanz antwortet sporadisch mit HTTP 504 (~1 von 4 Requests)~~ — **korrigiert in 005:** Hauptursache war die Query-Form. Mit der Bounding-Box *hinter* den Regex-Filtern (`nwr[...][...](bbox)`) wertet Overpass die Filter global aus → reproduzierbar HTTP 504. Fix: `nwr(bbox)[...][...]` (live: 504 → 200 in 1–9 s). Danach nur noch vereinzelte, echte Last-504 (2 von 9 Requests am 23.09.2026). Retry/Caching bewusst nicht in 003; Caching kommt mit 012.
+- **HTTP 504/429 von Overpass — Ursache: Rate-Limit, nicht die Query-Form** (Stand 23.09.2026, nach Nachmessung):
+  - Zwischenzeitlich wurde die Filter-Reihenfolge (`nwr[...](bbox)` vs. `nwr(bbox)[...]`) als Ursache vermutet. **Das war falsch.** Nachmessung auf `overpass.openstreetmap.fr` (18 Requests, abwechselnd): beide Formen 200, gleiche Laufzeiten, identische Ergebnisse (gleiche OSM-IDs).
+  - Tatsächliche Ursache: zu viele Requests pro IP (viele Live-Tests + parallele Frontend-Anfragen). `overpass-api.de` reagiert mit 429 → 504 → **verweigert danach Verbindungen komplett** (sah zeitweise wie eine Netzwerk-/Firewall-Sperre aus).
+  - Gegenmaßnahmen: Cache (012), max. 1 gleichzeitige Query + Single-Flight (017), Default-Instanz `overpass.openstreetmap.fr`. Retry bewusst nicht implementiert.
 - Overpass liefert Laufzeitfehler auch mit HTTP 200 und `remark: "runtime error: ..."` → wird als `OverpassTimeoutError` ("timed out") bzw. `OverpassApiError` gemeldet, damit das nicht als „keine Venues“ durchrutscht.
 - Regex-Filter `(^|;) *value *(;|$)` toleriert Leerzeichen in Wertlisten (`sport=billiards; darts`), passend zu `match_activities`.
 

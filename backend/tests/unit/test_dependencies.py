@@ -44,3 +44,4 @@ async def test_osm_service_lifespan_provides_service_and_closes_client():
 
     assert http_client.is_closed
     assert not hasattr(app.state, "osm_service")
+    assert not hasattr(app.state, "cache_service")

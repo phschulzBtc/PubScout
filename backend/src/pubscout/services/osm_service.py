@@ -29,6 +29,7 @@ OVERPASS_MAX_CONCURRENT_REQUESTS = 1
 OVERPASS_RUNTIME_ERROR_MARKER = "runtime error"
 OVERPASS_TIMEOUT_MARKER = "timed out"
 VENUE_AMENITY_FILTER = '["amenity"~"^(pub|bar)$"]'
+VENUE_SET_NAME = "venues"
 # Overpass rejects generic library user agents with HTTP 406.
 USER_AGENT = "PubScout/0.1 (+https://github.com/phschulzBtc/PubScout)"
 
@@ -210,26 +211,37 @@ def build_overpass_query(
     bounding_box: BoundingBox,
     activities: list[ActivityDefinition] | None = None,
 ) -> str:
+    venues = f"nwr{bounding_box.to_overpass()}{VENUE_AMENITY_FILTER}"
     if activities:
-        statements = "\n".join(
-            f"  nwr{VENUE_AMENITY_FILTER}{_tag_filter(osm_tag)}"
-            f"{bounding_box.to_overpass()};"
-            for activity in activities
-            for osm_tag in activity.osm_tags
-        )
+        # Select pubs/bars in the box once, then filter that set with one
+        # statement per tag key (10 km, all activities: 3.4 s instead of 14-16 s).
+        body = f"{venues}->.{VENUE_SET_NAME};\n(\n{_activity_filters(activities)}\n);\n"
     else:
-        # No filter: fetch all bars/pubs in the area
-        statements = f"  nwr{VENUE_AMENITY_FILTER}{bounding_box.to_overpass()};"
+        # No filter: all pubs/bars in the area
+        body = f"{venues};\n"
     return (
         f"[out:json][timeout:{OVERPASS_QUERY_TIMEOUT_SECONDS}];\n"
-        f"(\n{statements}\n);\n"
+        f"{body}"
         "out center tags;\n"
     )
 
 
-def _tag_filter(osm_tag: str) -> str:
-    key, value = osm_tag.split(OSM_TAG_SEPARATOR, maxsplit=1)
-    return f'["{key}"~"(^|;) *{value} *(;|$)"]'
+def _activity_filters(activities: list[ActivityDefinition]) -> str:
+    return "\n".join(
+        f'  nwr.{VENUE_SET_NAME}["{key}"~"(^|;) *({"|".join(values)}) *(;|$)"];'
+        for key, values in _tag_values_by_key(activities).items()
+    )
+
+
+def _tag_values_by_key(activities: list[ActivityDefinition]) -> dict[str, list[str]]:
+    grouped: dict[str, list[str]] = {}
+    for activity in activities:
+        for osm_tag in activity.osm_tags:
+            key, value = osm_tag.split(OSM_TAG_SEPARATOR, maxsplit=1)
+            values = grouped.setdefault(key, [])
+            if value not in values:
+                values.append(value)
+    return grouped
 
 
 def parse_overpass_response(payload: dict) -> list[VenueResponse]:

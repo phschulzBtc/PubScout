@@ -1,6 +1,9 @@
 import pytest
 
-from pubscout.services.activity_service import find_activities_by_icons
+from pubscout.services.activity_service import (
+    find_activities_by_icons,
+    list_activities,
+)
 from pubscout.services.osm_service import (
     BoundingBox,
     build_overpass_query,
@@ -27,14 +30,15 @@ def test_build_overpass_query_requests_json_with_way_centers():
     assert query.rstrip().endswith("out center tags;")
 
 
-def test_build_overpass_query_puts_bounding_box_before_tag_filters():
-    # Bounding box last makes Overpass evaluate the regex filters globally,
-    # which reliably ends in HTTP 504 (verified live 2026-09-23).
+def test_build_overpass_query_restricts_to_pubs_and_bars_in_bounding_box():
+    # Filter order within a statement does not matter: re-measured on
+    # 2026-09-23, bbox first vs. last gave identical results and timings.
     darts = find_activities_by_icons(["darts"])
 
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), darts)
 
-    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar)$"]["sport"' in query
+    assert '["amenity"~"^(pub|bar)$"]' in query
+    assert "(1.0,2.0,3.0,4.0)" in query
 
 
 def test_build_overpass_query_filters_on_every_tag_of_requested_activities():
@@ -42,6 +46,35 @@ def test_build_overpass_query_filters_on_every_tag_of_requested_activities():
 
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), darts)
 
-    assert '["leisure"~"(^|;) *darts *(;|$)"]' in query
-    assert '["sport"~"(^|;) *darts *(;|$)"]' in query
+    assert 'nwr.venues["leisure"~"(^|;) *(darts) *(;|$)"];' in query
+    assert 'nwr.venues["sport"~"(^|;) *(darts) *(;|$)"];' in query
     assert "billiards" not in query
+
+
+def test_build_overpass_query_selects_pubs_and_bars_in_bounding_box_only_once():
+    # One statement per OSM tag re-scanned the whole box each time: 10 km with
+    # all activities took 14-16 s vs. 3.4 s for this form (same results).
+    query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), list_activities())
+
+    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar)$"]->.venues;' in query
+    assert query.count("(1.0,2.0,3.0,4.0)") == 1
+
+
+def test_build_overpass_query_groups_tag_values_per_key():
+    query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), list_activities())
+
+    assert query.count("nwr.venues[") == 3
+    assert (
+        'nwr.venues["sport"~"(^|;) *'
+        "(billiards|darts|table_soccer|pool|shuffleboard|table_tennis)"
+        ' *(;|$)"];'
+    ) in query
+    assert 'nwr.venues["leisure"~"(^|;) *(board_game|darts) *(;|$)"];' in query
+    assert 'nwr.venues["quiz"~"(^|;) *(yes) *(;|$)"];' in query
+
+
+def test_build_overpass_query_without_filter_returns_all_pubs_and_bars():
+    query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), None)
+
+    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar)$"]' in query
+    assert "nwr.venues[" not in query

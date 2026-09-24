@@ -67,7 +67,7 @@ Als Frontend-Entwickler möchte ich Venues nach Standort und Aktivitäten filter
   ⚠️ **Hinweis an Dev B:** `ActivityFilterBar` und `MockApiClient` nutzen aktuell `activity.name` → echte API antwortet mit 422. Umstellung auf `activity.icon` nötig.
 - **Max. Radius 25 km** (Entscheidung Dev A): deckt alle Frontend-Optionen (1/2/5/10/25 km) ab und schützt Overpass vor teuren Queries.
 - **lat exklusiv ±90**: am Pol ist die Längengrad-Ausdehnung der Bounding-Box undefiniert (cos 90° = 0).
-- Kein Retry bei vereinzelten Overpass-504 — Client bekommt 504 und kann neu laden; Caching (012) entschärft das. (Die zunächst vermutete Rate „~1 von 4“ war größtenteils ein Query-Bug, behoben in 005 — siehe 003.)
+- Kein Retry bei vereinzelten Overpass-504 — Client bekommt 504 und kann neu laden; Caching (012) entschärft das. (Ursache der 504/429 ist das Overpass-Rate-Limit, nicht die Query-Form — siehe 003.)
 - Große Radien sind langsam: 10 km über alle Activities dauerte live 21,6 s (Overpass-Timeout 25 s). Bei 25 km sind Timeouts wahrscheinlicher → ggf. mit Dev B abstimmen oder in 012 per Caching lösen.
 - **Feste Fehlermeldungen** pro Status statt Upstream-Text (keine httpx-/Overpass-Interna an Clients); Originalfehler wird geloggt.
 

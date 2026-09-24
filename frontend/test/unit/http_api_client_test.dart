@@ -38,6 +38,24 @@ Dio _createMockDio(dynamic Function(RequestOptions) builder) {
 }
 
 void main() {
+  group('backendBaseOptions', () {
+    // The backend may take up to ~30 s (Overpass query timeout + margin).
+    // On web, Dio's connectTimeout runs until the response headers arrive,
+    // and the backend only sends them once the response is complete.
+    const backendMaxResponseTime = Duration(seconds: 30);
+
+    test('connect timeout outlasts the slowest backend response', () {
+      expect(
+        backendBaseOptions().connectTimeout,
+        greaterThan(backendMaxResponseTime),
+      );
+    });
+
+    test('uses the configured backend base URL', () {
+      expect(backendBaseOptions().baseUrl, 'http://localhost:8000');
+    });
+  });
+
   group('HttpApiClient', () {
     test('fetchActivities parses response correctly', () async {
       final dio = _createMockDio((_) => [
