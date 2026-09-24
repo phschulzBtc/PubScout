@@ -8,18 +8,10 @@ class LocationService {
 
   Future<LatLng> getCurrentLocation() async {
     try {
-      final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        final requested = await Geolocator.requestPermission();
-        if (requested == LocationPermission.denied ||
-            requested == LocationPermission.deniedForever) {
-          return _defaultLocation;
-        }
-      }
-      if (permission == LocationPermission.deniedForever) {
-        return _defaultLocation;
-      }
-
+      // Skip checkPermission/requestPermission — on web these often return
+      // "denied" even though the browser will show its own permission prompt
+      // when getCurrentPosition is called.  Calling getCurrentPosition
+      // directly triggers the browser dialog and works on all platforms.
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.medium,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod/riverpod.dart';
 
 import '../models/venue.dart';
@@ -26,13 +28,24 @@ class VenueFilterNotifier extends Notifier<VenueFilter> {
 final venueFilterProvider =
     NotifierProvider<VenueFilterNotifier, VenueFilter>(VenueFilterNotifier.new);
 
+class _VenueLoadingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
+
+/// Whether a background venue fetch is in progress while stale data is shown.
+final venueLoadingProvider =
+    NotifierProvider<_VenueLoadingNotifier, bool>(_VenueLoadingNotifier.new);
+
 class VenueNotifier extends AsyncNotifier<List<Venue>> {
   @override
   Future<List<Venue>> build() async {
     final client = ref.watch(apiClientProvider);
     final filter = ref.watch(venueFilterProvider);
 
-    // While loading, show previous data filtered by current activity selection
+    // Keep previous data visible while fetching new results.
     final previous = state.value;
     if (previous != null) {
       if (filter.activities.isEmpty) {
@@ -46,12 +59,21 @@ class VenueNotifier extends AsyncNotifier<List<Venue>> {
       }
     }
 
-    return client.fetchVenues(
-      lat: filter.lat,
-      lng: filter.lng,
-      radiusKm: filter.radiusKm,
-      activities: filter.activities.isEmpty ? null : filter.activities,
-    );
+    // Defer the loading flag update to avoid modifying another provider
+    // during this provider's synchronous initialization phase.
+    Future.microtask(() => ref.read(venueLoadingProvider.notifier).set(true));
+
+    try {
+      final venues = await client.fetchVenues(
+        lat: filter.lat,
+        lng: filter.lng,
+        radiusKm: filter.radiusKm,
+        activities: filter.activities.isEmpty ? null : filter.activities,
+      );
+      return venues;
+    } finally {
+      ref.read(venueLoadingProvider.notifier).set(false);
+    }
   }
 }
 

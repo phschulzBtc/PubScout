@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/venue_provider.dart';
 
-const _radiusOptions = [1.0, 2.0, 5.0, 10.0, 25.0];
+const _radiusOptions = [0.5, 1.0, 2.0, 5.0, 10.0];
 const _prefsKey = 'search_radius_km';
 
 class RadiusSelector extends ConsumerStatefulWidget {
@@ -24,8 +24,11 @@ class _RadiusSelectorState extends ConsumerState<RadiusSelector> {
   Future<void> _loadSavedRadius() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getDouble(_prefsKey);
-    if (saved != null) {
+    if (saved != null && _radiusOptions.contains(saved)) {
       ref.read(venueFilterProvider.notifier).update(radiusKm: saved);
+    } else if (saved != null) {
+      // Saved value no longer valid — reset to default
+      await prefs.remove(_prefsKey);
     }
   }
 

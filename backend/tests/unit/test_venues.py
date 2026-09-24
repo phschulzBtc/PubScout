@@ -131,7 +131,7 @@ async def test_list_venues_requires_coordinates(client, osm_service, missing):
         {"lng": 180.5},
         {"lng": -181},
         {"radius_km": 0},
-        {"radius_km": 25.1},
+        {"radius_km": 10.1},
     ],
 )
 async def test_list_venues_rejects_out_of_range_parameters(
@@ -144,7 +144,7 @@ async def test_list_venues_rejects_out_of_range_parameters(
 
 
 async def test_list_venues_accepts_maximum_radius(client, osm_service):
-    response = await client.get("/venues", params={**BERLIN, "radius_km": 25})
+    response = await client.get("/venues", params={**BERLIN, "radius_km": 10})
 
     assert response.status_code == 200
 

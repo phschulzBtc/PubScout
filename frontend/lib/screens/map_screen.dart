@@ -175,6 +175,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Widget _buildMapStack(AsyncValue<List<Venue>> venues) {
+    final isBackgroundLoading = ref.watch(venueLoadingProvider);
+    final showLoading = venues.isLoading || isBackgroundLoading;
+
     return Stack(
       children: [
         FlutterMap(
@@ -212,41 +215,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ],
         ),
-        if (venues.isLoading)
+        if (showLoading)
           Positioned(
             top: 12,
             left: 0,
             right: 0,
             child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: pubScoutGreenDark,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 8,
-                        offset: Offset(0, 2)),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    ),
-                    SizedBox(width: 8),
-                    Text('Venues laden...',
-                        style:
-                            TextStyle(color: Colors.white, fontSize: 13)),
-                  ],
-                ),
-              ),
+              child: _LoadingPill(),
             ),
           ),
         if (venues.hasError)
@@ -297,15 +272,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       children: [
         SizedBox(
           width: 360,
-          child: venues.when(
-            data: (list) => VenueListPanel(
-              venues: list,
-              selectedVenue: _selectedVenue,
-              onVenueTap: (venue) => _selectVenue(venue),
-            ),
-            loading: () =>
-                const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Fehler: $e')),
+          child: VenueListPanel(
+            venues: venues.value ?? [],
+            selectedVenue: _selectedVenue,
+            onVenueTap: (venue) => _selectVenue(venue),
           ),
         ),
         const VerticalDivider(width: 1),
@@ -369,36 +339,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Widget _buildVenueCount(BuildContext context, AsyncValue<List<Venue>> venues) {
-    return venues.when(
-      data: (list) {
-        final filter = ref.watch(venueFilterProvider);
-        final filterCount = filter.activities.length;
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.place, size: 14, color: pubScoutCream),
-              const SizedBox(width: 4),
-              Text(
-                filterCount > 0
-                    ? '${list.length} ($filterCount Filter)'
-                    : '${list.length}',
-                style: const TextStyle(
-                    color: pubScoutCream,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        );
-      },
-      loading: () => const Padding(
+    final isBackgroundLoading = ref.watch(venueLoadingProvider);
+    final list = venues.value;
+
+    if (list == null && venues.isLoading) {
+      return const Padding(
         padding: EdgeInsets.symmetric(horizontal: 12),
         child: Center(
             child: SizedBox(
@@ -406,8 +351,49 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           height: 14,
           child: CircularProgressIndicator(strokeWidth: 2, color: pubScoutCream),
         )),
+      );
+    }
+    if (venues.hasError && list == null) {
+      return const SizedBox.shrink();
+    }
+
+    final count = list?.length ?? 0;
+    final filter = ref.watch(venueFilterProvider);
+    final filterCount = filter.activities.length;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
       ),
-      error: (_, _) => const SizedBox.shrink(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isBackgroundLoading) ...[
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                  strokeWidth: 1.5, color: pubScoutCream),
+            ),
+            const SizedBox(width: 6),
+          ] else ...[
+            const Icon(Icons.place, size: 14, color: pubScoutCream),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            filterCount > 0
+                ? '$count ($filterCount Filter)'
+                : '$count',
+            style: const TextStyle(
+                color: pubScoutCream,
+                fontSize: 12,
+                fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 
@@ -501,8 +487,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     setState(() => _selectedVenue = venue);
 
     // Zoom to the selected venue
-    final zoom = _mapController.camera.zoom < 16
-        ? 16.0
+    final zoom = _mapController.camera.zoom < 17
+        ? 17.0
         : _mapController.camera.zoom;
     _mapController.move(LatLng(venue.latitude, venue.longitude), zoom);
 
@@ -643,6 +629,72 @@ class _ClusterIcon extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingPill extends StatefulWidget {
+  @override
+  State<_LoadingPill> createState() => _LoadingPillState();
+}
+
+class _LoadingPillState extends State<_LoadingPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    )..forward();
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: pubScoutGreenDark,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              'Venues laden...',
+              style: TextStyle(color: Colors.white, fontSize: 13),
+            ),
+          ],
         ),
       ),
     );

@@ -16,7 +16,7 @@ from pubscout.services.osm_service import (
 
 MAX_LATITUDE = 90.0
 MAX_LONGITUDE = 180.0
-MAX_SEARCH_RADIUS_KM = 25.0
+MAX_SEARCH_RADIUS_KM = 10.0
 ACTIVITY_SEPARATOR = ","
 ERROR_MESSAGES = {
     status.HTTP_502_BAD_GATEWAY: "Venue data source returned an error",

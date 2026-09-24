@@ -7,7 +7,7 @@ const String backendBaseUrl = 'http://localhost:8000';
 // complete — so it must outlast the slowest backend response.
 const Duration backendConnectTimeout = Duration(seconds: 40);
 const Duration backendReceiveTimeout = Duration(seconds: 30);
-const double defaultSearchRadiusKm = 5.0;
+const double defaultSearchRadiusKm = 2.0;
 const double defaultZoomLevel = 13.0;
 
 // Default center: Berlin
