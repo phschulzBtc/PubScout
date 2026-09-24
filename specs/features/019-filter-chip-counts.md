@@ -1,6 +1,6 @@
 # Feature 019: Venue-Anzahl in Filter-Chips
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich in den Aktivitäts- und Venue-Typ-Filtern sehen, wie viele Treffer jeder Filter bringt, damit ich einschätzen kann ob sich ein Filter lohnt.

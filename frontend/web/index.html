@@ -83,6 +83,25 @@
       if (el) el.remove();
     });
   </script>
+  <script>
+    // Suppress the default blue Flutter loading indicator —
+    // we show our own branded splash screen above.
+    window.addEventListener('DOMContentLoaded', function() {
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          m.addedNodes.forEach(function(node) {
+            if (node.shadowRoot) {
+              var style = document.createElement('style');
+              style.textContent = '.indeterminate { display: none !important; }';
+              node.shadowRoot.appendChild(style);
+              observer.disconnect();
+            }
+          });
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

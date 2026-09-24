@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../core/constants.dart';
+import '../core/geo_utils.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
@@ -474,11 +475,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         height: 44,
         child: GestureDetector(
           onTap: () {
-            // Zoom into the cluster
-            _mapController.move(
-              LatLng(avgLat, avgLng),
-              math.min(_currentZoom + 2, 18),
-            );
+            if (cluster.length > 20) {
+              _mapController.move(
+                LatLng(avgLat, avgLng),
+                math.min(_currentZoom + 2, 18),
+              );
+            } else {
+              _showClusterSheet(cluster);
+            }
           },
           child: _ClusterIcon(count: cluster.length),
         ),
@@ -543,6 +547,146 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         userLng: userLng,
       ),
     ).whenComplete(() => setState(() => _selectedVenue = null));
+  }
+
+  void _showClusterSheet(List<Venue> cluster) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ClusterBottomSheet(
+        venues: cluster,
+        onVenueTap: (venue) {
+          Navigator.of(context).pop();
+          _showVenuePopup(venue);
+        },
+      ),
+    );
+  }
+}
+
+class _ClusterBottomSheet extends StatelessWidget {
+  final List<Venue> venues;
+  final ValueChanged<Venue> onVenueTap;
+
+  const _ClusterBottomSheet({
+    required this.venues,
+    required this.onVenueTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DraggableScrollableSheet(
+      initialChildSize: 0.4,
+      minChildSize: 0.2,
+      maxChildSize: 0.65,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Drag handle + header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                child: Column(
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.place,
+                            size: 20, color: pubScoutGreen),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${venues.length} Venues',
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Venue list
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  itemCount: venues.length,
+                  itemBuilder: (context, index) {
+                    final venue = venues[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 2),
+                      leading: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [pubScoutGreen, pubScoutGreenDark],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          _iconForVenueType(venue.venueType),
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      title: Text(venue.name,
+                          style:
+                              const TextStyle(fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      subtitle: Text(
+                        venueTypeLabel(venue.venueType) +
+                            (venue.address.isNotEmpty
+                                ? ' · ${venue.address}'
+                                : ''),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: venue.activities.isNotEmpty
+                          ? Text('${venue.activities.length}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                  color:
+                                      theme.colorScheme.onSurfaceVariant))
+                          : null,
+                      onTap: () => onVenueTap(venue),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  static IconData _iconForVenueType(String type) {
+    return switch (type) {
+      'bar' => Icons.local_bar,
+      'biergarten' => Icons.deck,
+      'nightclub' => Icons.nightlife,
+      _ => Icons.sports_bar,
+    };
   }
 }
 

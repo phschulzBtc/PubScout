@@ -1,6 +1,6 @@
 # Feature 024: Cluster-Popup mit Venue-Liste
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich beim Klick auf einen Cluster-Marker eine Liste der enthaltenen Venues sehen, damit ich direkt eine Bar auswählen kann ohne erst reinzuzoomen.

@@ -1,6 +1,6 @@
 # Feature 023: Venue-Typ in Listeneintrag
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich in der Venue-Liste auf einen Blick sehen ob es eine Kneipe, Bar, Biergarten oder Nachtclub ist.

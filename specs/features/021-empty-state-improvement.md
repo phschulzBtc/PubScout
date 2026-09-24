@@ -1,6 +1,6 @@
 # Feature 021: Verbesserter Leer-Zustand bei Filtern
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich bei leeren Suchergebnissen einen hilfreichen Hinweis sehen, damit ich weiß warum nichts angezeigt wird und was ich tun kann.

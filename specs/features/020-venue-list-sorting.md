@@ -1,6 +1,6 @@
 # Feature 020: Venue-Liste nach Entfernung sortieren
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich die Venue-Liste nach Entfernung zu meinem Standort sortiert sehen, damit ich die nächstgelegenen Bars zuerst finde.

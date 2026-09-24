@@ -15,6 +15,9 @@ Web-App zum Finden von Bars/Kneipen mit Aktivitäten (Darts, Billard, Kicker, Br
 @include docs/claude/conventions.md
 @include docs/claude/nixos.md
 
+## Workflow-Regeln
+- **Feature-Specs updaten**: Nach Abschluss eines Features IMMER den Status in der zugehörigen Spec-Datei (`specs/features/NNN-*.md`) von `draft` auf `done` setzen.
+
 ## Quick Reference
 - Backend port: **8000**, OpenAPI docs: `/docs`, Health: `/health`
 - Feature-Specs: `specs/features/NNN-feature-name.md`
