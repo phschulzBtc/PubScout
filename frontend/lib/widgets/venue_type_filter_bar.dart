@@ -13,7 +13,7 @@ class VenueTypeFilterBar extends ConsumerWidget {
     final selected = ref.watch(venueFilterProvider).venueTypes;
     final counts = ref.watch(venueTypeCountsProvider);
 
-    if (types.length <= 1) return const SizedBox.shrink();
+    if (types.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
       height: 44,

@@ -83,25 +83,65 @@
       if (el) el.remove();
     });
   </script>
-  <script>
-    // Suppress the default blue Flutter loading indicator —
-    // we show our own branded splash screen above.
-    window.addEventListener('DOMContentLoaded', function() {
-      var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(m) {
-          m.addedNodes.forEach(function(node) {
-            if (node.shadowRoot) {
-              var style = document.createElement('style');
-              style.textContent = '.indeterminate { display: none !important; }';
-              node.shadowRoot.appendChild(style);
-              observer.disconnect();
-            }
-          });
-        });
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    });
-  </script>
   <script src="flutter_bootstrap.js" async></script>
+  <!--
+    Override the Flutter engine's built-in loading indicator by injecting CSS
+    that hides it. The indicator lives inside a shadow root, so we need to
+    watch for it and inject a <style> once it appears.
+  -->
+  <script>
+    (function() {
+      // Strategy 1: catch shadow roots added to body
+      var mo = new MutationObserver(function(records) {
+        for (var i = 0; i < records.length; i++) {
+          for (var j = 0; j < records[i].addedNodes.length; j++) {
+            var node = records[i].addedNodes[j];
+            if (node.nodeType === 1) { hideInShadow(node); }
+          }
+        }
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+
+      function hideInShadow(el) {
+        // Check the element itself and its descendants for shadow roots
+        try {
+          if (el.shadowRoot) { injectHide(el.shadowRoot); }
+        } catch(e) {}
+        // Also handle flt-glass-pane and flutter-view elements
+        if (el.tagName && (el.tagName.includes('-') || el.tagName === 'FLUTTER-VIEW')) {
+          // Observe for shadow root attachment
+          var so = new MutationObserver(function() {
+            if (el.shadowRoot) { injectHide(el.shadowRoot); so.disconnect(); }
+          });
+          so.observe(el, { childList: true });
+          // Also try after a tick
+          setTimeout(function() {
+            if (el.shadowRoot) { injectHide(el.shadowRoot); }
+            so.disconnect();
+          }, 50);
+        }
+      }
+
+      function injectHide(shadowRoot) {
+        var s = document.createElement('style');
+        s.textContent = '.indeterminate, .loading-indicator { display:none!important; height:0!important; }';
+        shadowRoot.appendChild(s);
+      }
+
+      // Strategy 2: brute-force hide any top-level element that looks like a loader
+      var interval = setInterval(function() {
+        document.querySelectorAll('flutter-view, flt-glass-pane').forEach(function(el) {
+          if (el.shadowRoot) {
+            injectHide(el.shadowRoot);
+            clearInterval(interval);
+            mo.disconnect();
+          }
+        });
+      }, 100);
+
+      // Clean up after 10 seconds regardless
+      setTimeout(function() { clearInterval(interval); mo.disconnect(); }, 10000);
+    })();
+  </script>
 </body>
 </html>

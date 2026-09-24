@@ -5,6 +5,7 @@ import 'package:riverpod/riverpod.dart';
 import '../models/activity.dart';
 import '../models/venue.dart';
 import '../models/venue_filter.dart';
+import 'activity_provider.dart';
 import 'api_client_provider.dart';
 
 class VenueFilterNotifier extends Notifier<VenueFilter> {
@@ -86,26 +87,14 @@ final venueProvider =
 // Available filter options (derived from all loaded venues)
 // ---------------------------------------------------------------------------
 
-/// All activities found in loaded venues.
+/// All activities from the backend — always available, independent of loaded venues.
 final availableActivitiesProvider = Provider<List<Activity>>((ref) {
-  final venues = ref.watch(venueProvider).value ?? [];
-  final seen = <String>{};
-  final activities = <Activity>[];
-  for (final venue in venues) {
-    for (final a in venue.activities) {
-      if (seen.add(a.icon)) {
-        activities.add(a);
-      }
-    }
-  }
-  activities.sort((a, b) => a.name.compareTo(b.name));
-  return activities;
+  return ref.watch(activityProvider).value ?? [];
 });
 
-/// All venue types found in loaded venues.
+/// All supported venue types — fixed list, always visible.
 final availableVenueTypesProvider = Provider<List<String>>((ref) {
-  final venues = ref.watch(venueProvider).value ?? [];
-  return venues.map((v) => v.venueType).toSet().toList()..sort();
+  return const ['bar', 'biergarten', 'nightclub', 'pub'];
 });
 
 // ---------------------------------------------------------------------------

@@ -14,7 +14,7 @@ class ActivityFilterBar extends ConsumerWidget {
     final counts = ref.watch(activityCountsProvider);
 
     if (activities.isEmpty) {
-      return const SizedBox(height: 50);
+      return const SizedBox.shrink();
     }
 
     return SizedBox(
