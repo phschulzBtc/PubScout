@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/theme.dart';
 import '../services/nominatim_service.dart';
 import '../services/search_history_service.dart';
 
@@ -22,7 +23,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   Timer? _debounce;
   List<NominatimResult> _suggestions = [];
-  List<String> _recentSearches = [];
+  List<SearchHistoryEntry> _recentSearches = [];
   bool _isLoading = false;
   bool _showSuggestions = false;
 
@@ -81,15 +82,34 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     _controller.clear();
     _focusNode.unfocus();
     setState(() => _showSuggestions = false);
-    _history.addEntry(result.displayName);
+    _history.addEntry(SearchHistoryEntry(
+      name: result.displayName,
+      lat: result.latitude,
+      lng: result.longitude,
+    ));
     _loadHistory();
     widget.onLocationSelected(
         result.latitude, result.longitude, result.displayName);
   }
 
-  void _selectHistoryEntry(String entry) {
-    _controller.text = entry;
-    _onSearchChanged(entry);
+  void _selectHistoryEntry(SearchHistoryEntry entry) {
+    _controller.clear();
+    _focusNode.unfocus();
+    setState(() => _showSuggestions = false);
+    widget.onLocationSelected(entry.lat, entry.lng, entry.name);
+  }
+
+  Future<void> _removeHistoryEntry(SearchHistoryEntry entry) async {
+    await _history.removeEntry(entry.name);
+    await _loadHistory();
+  }
+
+  Future<void> _clearHistory() async {
+    await _history.clear();
+    setState(() {
+      _recentSearches = [];
+      _showSuggestions = false;
+    });
   }
 
   @override
@@ -120,7 +140,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   : null,
               isDense: true,
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              fillColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(28),
                 borderSide: BorderSide.none,
@@ -165,7 +186,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: ListView.separated(
@@ -190,29 +212,45 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   }
 
   Widget _buildHistoryList() {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: _recentSearches
-            .map((entry) => ListTile(
-                  leading: const Icon(Icons.history),
-                  title: Text(
-                    entry,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  dense: true,
-                  onTap: () => _selectHistoryEntry(entry),
-                ))
-            .toList(),
+        children: [
+          ..._recentSearches.map((entry) => ListTile(
+                leading: const Icon(Icons.history),
+                title: Text(
+                  entry.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.close,
+                      size: 18, color: theme.colorScheme.outline),
+                  onPressed: () => _removeHistoryEntry(entry),
+                ),
+                dense: true,
+                onTap: () => _selectHistoryEntry(entry),
+              )),
+          const Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.delete_outline,
+                size: 20, color: pubScoutCoral),
+            title: Text('Verlauf löschen',
+                style: TextStyle(color: pubScoutCoral, fontSize: 14)),
+            dense: true,
+            onTap: _clearHistory,
+          ),
+        ],
       ),
     );
   }

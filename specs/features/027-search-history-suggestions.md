@@ -1,6 +1,6 @@
 # Feature 027: Suchverlauf als Vorschläge
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich frühere Suchen als Vorschläge sehen, damit ich schnell zu bekannten Orten zurückkehren kann.
