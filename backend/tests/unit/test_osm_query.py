@@ -37,7 +37,7 @@ def test_build_overpass_query_restricts_to_pubs_and_bars_in_bounding_box():
 
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), darts)
 
-    assert '["amenity"~"^(pub|bar)$"]' in query
+    assert '["amenity"~"^(pub|bar|biergarten|nightclub)$"]' in query
     assert "(1.0,2.0,3.0,4.0)" in query
 
 
@@ -56,7 +56,7 @@ def test_build_overpass_query_selects_pubs_and_bars_in_bounding_box_only_once():
     # all activities took 14-16 s vs. 3.4 s for this form (same results).
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), list_activities())
 
-    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar)$"]->.venues;' in query
+    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar|biergarten|nightclub)$"]->.venues;' in query
     assert query.count("(1.0,2.0,3.0,4.0)") == 1
 
 
@@ -81,5 +81,5 @@ def test_build_overpass_query_groups_tag_values_per_key():
 def test_build_overpass_query_without_filter_returns_all_pubs_and_bars():
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), None)
 
-    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar)$"]' in query
+    assert 'nwr(1.0,2.0,3.0,4.0)["amenity"~"^(pub|bar|biergarten|nightclub)$"]' in query
     assert "nwr.venues[" not in query

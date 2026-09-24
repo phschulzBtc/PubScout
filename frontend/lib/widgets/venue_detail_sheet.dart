@@ -106,7 +106,7 @@ class VenueDetailSheet extends ConsumerWidget {
               ),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.sports_bar,
+            child: Icon(_iconForVenueType(venue.venueType),
                 color: Colors.white, size: 26),
           ),
           const SizedBox(width: 14),
@@ -117,12 +117,15 @@ class VenueDetailSheet extends ConsumerWidget {
                 Text(venue.name,
                     style: theme.textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.w700)),
-                if (venue.address.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(venue.address,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
-                ],
+                const SizedBox(height: 2),
+                Text(
+                  [
+                    _venueTypeLabel(venue.venueType),
+                    if (venue.address.isNotEmpty) venue.address,
+                  ].join(' · '),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant),
+                ),
               ],
             ),
           ),
@@ -253,6 +256,25 @@ class VenueDetailSheet extends ConsumerWidget {
         ),
       ),
     ];
+  }
+
+  static IconData _iconForVenueType(String type) {
+    return switch (type) {
+      'bar' => Icons.local_bar,
+      'biergarten' => Icons.deck,
+      'nightclub' => Icons.nightlife,
+      _ => Icons.sports_bar,
+    };
+  }
+
+  static String _venueTypeLabel(String type) {
+    return switch (type) {
+      'pub' => 'Kneipe',
+      'bar' => 'Bar',
+      'biergarten' => 'Biergarten',
+      'nightclub' => 'Nachtclub',
+      _ => type,
+    };
   }
 
   static String _shortenUrl(String url) {

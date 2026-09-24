@@ -20,6 +20,7 @@ import '../widgets/search_bar_widget.dart';
 import '../widgets/offline_banner.dart';
 import '../widgets/venue_detail_sheet.dart';
 import '../widgets/venue_list_panel.dart';
+import '../widgets/venue_type_filter_bar.dart';
 import 'favorites_screen.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -71,7 +72,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final venues = ref.watch(venueProvider);
+    final venues = ref.watch(filteredVenueProvider);
     final userLocation = ref.watch(userLocationProvider);
 
     if (!_initialLocationSet) {
@@ -160,6 +161,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   .update(lat: lat, lng: lng);
             },
           ),
+          const VenueTypeFilterBar(),
           Row(
             children: [
               const Expanded(child: ActivityFilterBar()),
@@ -332,9 +334,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   void _selectVenue(Venue venue) {
     setState(() => _selectedVenue = venue);
+    final zoom = _mapController.camera.zoom < 17
+        ? 17.0
+        : _mapController.camera.zoom;
     _mapController.move(
       LatLng(venue.latitude, venue.longitude),
-      _mapController.camera.zoom,
+      zoom,
     );
   }
 
@@ -425,6 +430,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           child: GestureDetector(
             onTap: () => _showVenuePopup(venue),
             child: _VenueMarkerIcon(
+              venueType: venue.venueType,
               isFavorite: isFav,
               isSelected: isSelected,
             ),
@@ -518,10 +524,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 }
 
 class _VenueMarkerIcon extends StatelessWidget {
+  final String venueType;
   final bool isFavorite;
   final bool isSelected;
 
-  const _VenueMarkerIcon({this.isFavorite = false, this.isSelected = false});
+  const _VenueMarkerIcon({
+    this.venueType = 'pub',
+    this.isFavorite = false,
+    this.isSelected = false,
+  });
+
+  static IconData _iconForType(String type) {
+    return switch (type) {
+      'bar' => Icons.local_bar,
+      'biergarten' => Icons.deck,
+      'nightclub' => Icons.nightlife,
+      _ => Icons.sports_bar,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -563,7 +583,7 @@ class _VenueMarkerIcon extends StatelessWidget {
             ],
           ),
           child: Icon(
-            isFavorite ? Icons.favorite : Icons.sports_bar,
+            isFavorite ? Icons.favorite : _iconForType(venueType),
             color: Colors.white,
             size: iconSize,
           ),

@@ -9,6 +9,7 @@ class VenueResponse(BaseModel):
     longitude: float
     address: str
     osm_id: str
+    venue_type: str = "pub"
     activities: list[ActivitySummary]
     description: str = ""
     opening_hours: str = ""

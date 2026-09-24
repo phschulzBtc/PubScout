@@ -68,7 +68,7 @@ class VenueListPanel extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              isFav ? Icons.favorite : Icons.sports_bar,
+              isFav ? Icons.favorite : _iconForVenueType(venue.venueType),
               color: Colors.white,
               size: 20,
             ),
@@ -93,5 +93,14 @@ class VenueListPanel extends ConsumerWidget {
         );
       },
     );
+  }
+
+  static IconData _iconForVenueType(String type) {
+    return switch (type) {
+      'bar' => Icons.local_bar,
+      'biergarten' => Icons.deck,
+      'nightclub' => Icons.nightlife,
+      _ => Icons.sports_bar,
+    };
   }
 }

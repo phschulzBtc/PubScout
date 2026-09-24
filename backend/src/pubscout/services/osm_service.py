@@ -28,7 +28,7 @@ OVERPASS_MIN_REQUEST_INTERVAL_SECONDS = 1.0
 OVERPASS_MAX_CONCURRENT_REQUESTS = 1
 OVERPASS_RUNTIME_ERROR_MARKER = "runtime error"
 OVERPASS_TIMEOUT_MARKER = "timed out"
-VENUE_AMENITY_FILTER = '["amenity"~"^(pub|bar)$"]'
+VENUE_AMENITY_FILTER = '["amenity"~"^(pub|bar|biergarten|nightclub)$"]'
 VENUE_SET_NAME = "venues"
 # Overpass rejects generic library user agents with HTTP 406.
 USER_AGENT = "PubScout/0.1 (+https://github.com/phschulzBtc/PubScout)"
@@ -262,6 +262,7 @@ def _parse_element(element: dict) -> VenueResponse | None:
         longitude=longitude,
         address=_format_address(tags),
         osm_id=f"{element['type']}/{element['id']}",
+        venue_type=tags.get("amenity", "pub"),
         activities=[
             ActivitySummary(
                 name=activity.name,

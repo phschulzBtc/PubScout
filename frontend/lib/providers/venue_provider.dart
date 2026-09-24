@@ -16,12 +16,14 @@ class VenueFilterNotifier extends Notifier<VenueFilter> {
     double? lng,
     double? radiusKm,
     List<String>? activities,
+    List<String>? venueTypes,
   }) {
     state = state.copyWith(
       lat: lat,
       lng: lng,
       radiusKm: radiusKm,
       activities: activities,
+      venueTypes: venueTypes,
     );
   }
 }
@@ -75,6 +77,7 @@ class VenueNotifier extends AsyncNotifier<List<Venue>> {
       // so the filter bar shows only activities that exist in this area.
       if (filter.activities.isEmpty) {
         ref.read(availableActivitiesProvider.notifier).update(venues);
+        ref.read(availableVenueTypesProvider.notifier).update(venues);
       }
       return venues;
     } finally {
@@ -110,3 +113,28 @@ class _AvailableActivitiesNotifier extends Notifier<List<Activity>> {
 final availableActivitiesProvider =
     NotifierProvider<_AvailableActivitiesNotifier, List<Activity>>(
         _AvailableActivitiesNotifier.new);
+
+/// Venue types that exist in the currently loaded venues.
+class _AvailableVenueTypesNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() => [];
+
+  void update(List<Venue> venues) {
+    final types = venues.map((v) => v.venueType).toSet().toList()..sort();
+    state = types;
+  }
+}
+
+final availableVenueTypesProvider =
+    NotifierProvider<_AvailableVenueTypesNotifier, List<String>>(
+        _AvailableVenueTypesNotifier.new);
+
+/// Venues filtered client-side by venue type selection.
+final filteredVenueProvider = Provider<AsyncValue<List<Venue>>>((ref) {
+  final venues = ref.watch(venueProvider);
+  final selectedTypes = ref.watch(venueFilterProvider).venueTypes;
+  if (selectedTypes.isEmpty) return venues;
+  return venues.whenData(
+    (list) => list.where((v) => selectedTypes.contains(v.venueType)).toList(),
+  );
+});

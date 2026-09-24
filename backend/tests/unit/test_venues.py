@@ -64,6 +64,7 @@ async def test_list_venues_returns_venues_in_contract_format(client, osm_service
             "longitude": 13.405,
             "address": "Beispielstr. 1, 10115 Berlin",
             "osm_id": "node/123",
+            "venue_type": "pub",
             "activities": [{"name": "Darts", "icon": "darts", "details": ""}],
             "description": "Coole Dart Bar",
             "opening_hours": "Mo-Fr 18:00-02:00",

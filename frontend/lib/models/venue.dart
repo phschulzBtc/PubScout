@@ -15,6 +15,7 @@ class Venue {
   final String phone;
   final bool outdoorSeating;
   final String wheelchair;
+  final String venueType;
   final List<Activity> activities;
 
   const Venue({
@@ -29,6 +30,7 @@ class Venue {
     this.phone = '',
     this.outdoorSeating = false,
     this.wheelchair = '',
+    this.venueType = 'pub',
     this.activities = const [],
   });
 
@@ -59,6 +61,7 @@ class Venue {
       phone: json['phone'] as String? ?? '',
       outdoorSeating: json['outdoor_seating'] as bool? ?? false,
       wheelchair: json['wheelchair'] as String? ?? '',
+      venueType: json['venue_type'] as String? ?? 'pub',
       activities: (json['activities'] as List<dynamic>?)
               ?.map((e) => Activity.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -78,6 +81,7 @@ class Venue {
         'phone': phone,
         'outdoor_seating': outdoorSeating,
         'wheelchair': wheelchair,
+        'venue_type': venueType,
         'activities': activities.map((a) => a.toJson()).toList(),
       };
 
