@@ -108,6 +108,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         actions: [
           _buildVenueCount(context, venues),
           IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Neu laden',
+            onPressed: _refreshVenues,
+          ),
+          IconButton(
             icon: const Icon(Icons.favorite),
             tooltip: 'Favoriten',
             onPressed: () => Navigator.of(context).push(
@@ -286,6 +291,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     return filter.activities.isNotEmpty ||
         filter.venueTypes.isNotEmpty ||
         filter.wheelchairOnly;
+  }
+
+  Future<void> _refreshVenues() async {
+    ref.invalidate(venueProvider);
   }
 
   // Mobile: fullscreen map, venues shown via bottom sheet on tap
