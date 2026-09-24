@@ -255,6 +255,7 @@ def _parse_element(element: dict) -> VenueResponse | None:
     if "name" not in tags or coordinates is None:
         return None
     latitude, longitude = coordinates
+    matched = match_activities(tags)
     return VenueResponse(
         name=tags["name"],
         latitude=latitude,
@@ -262,9 +263,19 @@ def _parse_element(element: dict) -> VenueResponse | None:
         address=_format_address(tags),
         osm_id=f"{element['type']}/{element['id']}",
         activities=[
-            ActivitySummary(name=activity.name, icon=activity.icon)
-            for activity in match_activities(tags)
+            ActivitySummary(
+                name=activity.name,
+                icon=activity.icon,
+                details=_activity_details(activity, tags),
+            )
+            for activity in matched
         ],
+        description=tags.get("description", ""),
+        opening_hours=tags.get("opening_hours", ""),
+        website=tags.get("website", tags.get("contact:website", "")),
+        phone=tags.get("phone", tags.get("contact:phone", "")),
+        outdoor_seating=tags.get("outdoor_seating", "no").lower() == "yes",
+        wheelchair=tags.get("wheelchair", ""),
     )
 
 
@@ -283,3 +294,32 @@ def _format_address(tags: dict[str, str]) -> str:
 
 def _join_present(tags: dict[str, str], keys: tuple[str, ...]) -> str:
     return " ".join(tags[key] for key in keys if key in tags)
+
+
+# Maps activity icon → (count_key, type_key) for extracting detail info.
+_DETAIL_TAG_MAP: dict[str, tuple[str | None, str | None]] = {
+    "billiards": ("billiards", "billiards:type"),
+    "darts": ("darts", "darts:type"),
+    "foosball": ("table_soccer", None),
+    "table_tennis": ("table_tennis", None),
+}
+
+
+def _activity_details(
+    activity: "ActivityDefinition", tags: dict[str, str]
+) -> str:
+    parts: list[str] = []
+    mapping = _DETAIL_TAG_MAP.get(activity.icon)
+    if mapping:
+        count_key, type_key = mapping
+        if count_key and count_key in tags:
+            try:
+                count = int(tags[count_key])
+                if count > 0:
+                    parts.append(f"{count}x")
+            except ValueError:
+                pass
+        if type_key and type_key in tags:
+            raw = tags[type_key]
+            parts.append(raw.replace("_", " ").title())
+    return " ".join(parts)

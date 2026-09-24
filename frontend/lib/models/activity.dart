@@ -4,11 +4,13 @@ import 'package:meta/meta.dart';
 class Activity {
   final String name;
   final String icon;
+  final String details;
   final List<String> osmTags;
 
   const Activity({
     required this.name,
     required this.icon,
+    this.details = '',
     this.osmTags = const [],
   });
 
@@ -24,6 +26,7 @@ class Activity {
     return Activity(
       name: name,
       icon: icon,
+      details: json['details'] as String? ?? '',
       osmTags: (json['osm_tags'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -34,6 +37,7 @@ class Activity {
   Map<String, dynamic> toJson() => {
         'name': name,
         'icon': icon,
+        'details': details,
         'osm_tags': osmTags,
       };
 

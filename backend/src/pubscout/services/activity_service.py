@@ -12,14 +12,23 @@ class ActivityDefinition:
 
 
 ACTIVITIES: tuple[ActivityDefinition, ...] = (
-    ActivityDefinition("Billard", "billiards", ("sport=billiards",)),
+    ActivityDefinition(
+        "Billard/Pool", "billiards", ("sport=billiards", "sport=pool")
+    ),
     ActivityDefinition("Brettspiele", "board_games", ("leisure=board_game",)),
     ActivityDefinition("Darts", "darts", ("leisure=darts", "sport=darts")),
+    ActivityDefinition("Karaoke", "karaoke", ("karaoke=yes",)),
     ActivityDefinition("Kicker", "foosball", ("sport=table_soccer",)),
-    ActivityDefinition("Pool", "pool", ("sport=pool",)),
+    ActivityDefinition("Live-Musik", "live_music", ("live_music=yes",)),
+    ActivityDefinition(
+        "Poker/Kartenspiele", "poker", ("sport=poker", "card_games=yes")
+    ),
     ActivityDefinition("Quiz/Trivia", "quiz", ("quiz=yes",)),
     ActivityDefinition("Shuffleboard", "shuffleboard", ("sport=shuffleboard",)),
     ActivityDefinition("Tischtennis", "table_tennis", ("sport=table_tennis",)),
+    ActivityDefinition(
+        "TV/Sport", "sport_tv", ("sport_tv=yes", "television=yes")
+    ),
 )
 
 

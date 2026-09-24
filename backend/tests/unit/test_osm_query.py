@@ -63,14 +63,19 @@ def test_build_overpass_query_selects_pubs_and_bars_in_bounding_box_only_once():
 def test_build_overpass_query_groups_tag_values_per_key():
     query = build_overpass_query(BoundingBox(1.0, 2.0, 3.0, 4.0), list_activities())
 
-    assert query.count("nwr.venues[") == 3
+    assert query.count("nwr.venues[") == 8
     assert (
         'nwr.venues["sport"~"(^|;) *'
-        "(billiards|darts|table_soccer|pool|shuffleboard|table_tennis)"
+        "(billiards|pool|darts|table_soccer|poker|shuffleboard|table_tennis)"
         ' *(;|$)"];'
     ) in query
     assert 'nwr.venues["leisure"~"(^|;) *(board_game|darts) *(;|$)"];' in query
     assert 'nwr.venues["quiz"~"(^|;) *(yes) *(;|$)"];' in query
+    assert 'nwr.venues["karaoke"~"(^|;) *(yes) *(;|$)"];' in query
+    assert 'nwr.venues["live_music"~"(^|;) *(yes) *(;|$)"];' in query
+    assert 'nwr.venues["card_games"~"(^|;) *(yes) *(;|$)"];' in query
+    assert 'nwr.venues["sport_tv"~"(^|;) *(yes) *(;|$)"];' in query
+    assert 'nwr.venues["television"~"(^|;) *(yes) *(;|$)"];' in query
 
 
 def test_build_overpass_query_without_filter_returns_all_pubs_and_bars():

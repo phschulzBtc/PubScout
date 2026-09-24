@@ -10,6 +10,11 @@ class Venue {
   final String address;
   final String osmId;
   final String openingHours;
+  final String description;
+  final String website;
+  final String phone;
+  final bool outdoorSeating;
+  final String wheelchair;
   final List<Activity> activities;
 
   const Venue({
@@ -19,6 +24,11 @@ class Venue {
     this.address = '',
     this.osmId = '',
     this.openingHours = '',
+    this.description = '',
+    this.website = '',
+    this.phone = '',
+    this.outdoorSeating = false,
+    this.wheelchair = '',
     this.activities = const [],
   });
 
@@ -44,6 +54,11 @@ class Venue {
       address: json['address'] as String? ?? '',
       osmId: json['osm_id'] as String? ?? '',
       openingHours: json['opening_hours'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      website: json['website'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      outdoorSeating: json['outdoor_seating'] as bool? ?? false,
+      wheelchair: json['wheelchair'] as String? ?? '',
       activities: (json['activities'] as List<dynamic>?)
               ?.map((e) => Activity.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -58,6 +73,11 @@ class Venue {
         'address': address,
         'osm_id': osmId,
         'opening_hours': openingHours,
+        'description': description,
+        'website': website,
+        'phone': phone,
+        'outdoor_seating': outdoorSeating,
+        'wheelchair': wheelchair,
         'activities': activities.map((a) => a.toJson()).toList(),
       };
 

@@ -10,3 +10,9 @@ class VenueResponse(BaseModel):
     address: str
     osm_id: str
     activities: list[ActivitySummary]
+    description: str = ""
+    opening_hours: str = ""
+    website: str = ""
+    phone: str = ""
+    outdoor_seating: bool = False
+    wheelchair: str = ""

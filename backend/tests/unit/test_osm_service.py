@@ -209,9 +209,9 @@ async def test_fetch_venues_with_filter_queries_only_requested_activities(
     queries: list[str] = []
     service = OsmService(make_client(_recording_handler(queries)))
 
-    await service.fetch_venues(52.52, 13.405, radius_km=1.0, activities=["pool"])
+    await service.fetch_venues(52.52, 13.405, radius_km=1.0, activities=["billiards"])
 
-    assert "pool" in queries[0]
+    assert "billiards" in queries[0]
     assert "darts" not in queries[0]
 
 

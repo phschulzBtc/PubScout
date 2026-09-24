@@ -10,3 +10,4 @@ class ActivityResponse(BaseModel):
 class ActivitySummary(BaseModel):
     name: str
     icon: str
+    details: str = ""

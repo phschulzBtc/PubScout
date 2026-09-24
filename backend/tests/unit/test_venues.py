@@ -20,6 +20,12 @@ DART_PUB = VenueResponse(
     address="Beispielstr. 1, 10115 Berlin",
     osm_id="node/123",
     activities=[ActivitySummary(name="Darts", icon="darts")],
+    description="Coole Dart Bar",
+    opening_hours="Mo-Fr 18:00-02:00",
+    website="https://dartpub.de",
+    phone="+49 30 12345",
+    outdoor_seating=True,
+    wheelchair="yes",
 )
 
 
@@ -58,7 +64,13 @@ async def test_list_venues_returns_venues_in_contract_format(client, osm_service
             "longitude": 13.405,
             "address": "Beispielstr. 1, 10115 Berlin",
             "osm_id": "node/123",
-            "activities": [{"name": "Darts", "icon": "darts"}],
+            "activities": [{"name": "Darts", "icon": "darts", "details": ""}],
+            "description": "Coole Dart Bar",
+            "opening_hours": "Mo-Fr 18:00-02:00",
+            "website": "https://dartpub.de",
+            "phone": "+49 30 12345",
+            "outdoor_seating": True,
+            "wheelchair": "yes",
         }
     ]
 
@@ -78,9 +90,9 @@ async def test_list_venues_uses_configured_default_radius(client, osm_service):
 
 
 async def test_list_venues_splits_comma_separated_activities(client, osm_service):
-    await client.get("/venues", params={**BERLIN, "activities": "darts, pool"})
+    await client.get("/venues", params={**BERLIN, "activities": "darts, billiards"})
 
-    assert osm_service.calls[0]["activities"] == ["darts", "pool"]
+    assert osm_service.calls[0]["activities"] == ["darts", "billiards"]
 
 
 @pytest.mark.parametrize("empty", ["", " ", ",", " , ,"])

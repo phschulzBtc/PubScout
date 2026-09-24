@@ -58,12 +58,16 @@ class ActivityFilterBar extends ConsumerWidget {
   IconData _activityIcon(String icon) {
     return switch (icon) {
       'darts' => Icons.gps_fixed,
-      'billiards' || 'pool' => Icons.circle,
+      'billiards' => Icons.circle,
       'foosball' => Icons.sports_soccer,
       'board_games' => Icons.extension,
       'table_tennis' => Icons.sports_tennis,
       'quiz' => Icons.quiz,
       'shuffleboard' => Icons.swap_horiz,
+      'karaoke' => Icons.mic,
+      'live_music' => Icons.music_note,
+      'poker' => Icons.style,
+      'sport_tv' => Icons.tv,
       _ => Icons.sports_bar,
     };
   }
