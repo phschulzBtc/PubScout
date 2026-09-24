@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/activity_provider.dart';
 import '../providers/venue_provider.dart';
 
 class ActivityFilterBar extends ConsumerWidget {
@@ -9,41 +8,38 @@ class ActivityFilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activitiesAsync = ref.watch(activityProvider);
+    final activities = ref.watch(availableActivitiesProvider);
     final filter = ref.watch(venueFilterProvider);
     final selectedActivities = filter.activities;
 
-    return activitiesAsync.when(
-      data: (activities) => SizedBox(
-        height: 50,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          itemCount: activities.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final activity = activities[index];
-            final isSelected = selectedActivities.contains(activity.icon);
+    if (activities.isEmpty) {
+      return const SizedBox(height: 50);
+    }
 
-            return FilterChip(
-              label: Text(activity.name),
-              selected: isSelected,
-              onSelected: (_) => _toggleActivity(ref, activity.icon),
-              avatar: Icon(
-                _activityIcon(activity.icon),
-                size: 18,
-              ),
-              showCheckmark: false,
-              selectedColor: Theme.of(context).colorScheme.primaryContainer,
-            );
-          },
-        ),
+    return SizedBox(
+      height: 50,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        itemCount: activities.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final activity = activities[index];
+          final isSelected = selectedActivities.contains(activity.icon);
+
+          return FilterChip(
+            label: Text(activity.name),
+            selected: isSelected,
+            onSelected: (_) => _toggleActivity(ref, activity.icon),
+            avatar: Icon(
+              _activityIcon(activity.icon),
+              size: 18,
+            ),
+            showCheckmark: false,
+            selectedColor: Theme.of(context).colorScheme.primaryContainer,
+          );
+        },
       ),
-      loading: () => const SizedBox(
-        height: 50,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
