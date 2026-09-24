@@ -40,47 +40,38 @@ class _VenueLoadingNotifier extends Notifier<bool> {
   void set(bool value) => state = value;
 }
 
-/// Whether a background venue fetch is in progress while stale data is shown.
 final venueLoadingProvider =
     NotifierProvider<_VenueLoadingNotifier, bool>(_VenueLoadingNotifier.new);
 
+/// Spatial-only filter that triggers backend re-fetches.
+/// Activity/venueType/wheelchair filters are client-side only.
+final _spatialFilterProvider = Provider<({double lat, double lng, double radiusKm})>((ref) {
+  final f = ref.watch(venueFilterProvider);
+  return (lat: f.lat, lng: f.lng, radiusKm: f.radiusKm);
+});
+
+/// Fetches ALL venues from the backend (no activity filter).
+/// All filtering happens client-side so cross-filter counts work.
 class VenueNotifier extends AsyncNotifier<List<Venue>> {
   @override
   Future<List<Venue>> build() async {
     final client = ref.watch(apiClientProvider);
-    final filter = ref.watch(venueFilterProvider);
+    final spatial = ref.watch(_spatialFilterProvider);
 
-    // Keep previous data visible while fetching new results.
+    // Keep previous data visible while fetching.
     final previous = state.value;
     if (previous != null) {
-      if (filter.activities.isEmpty) {
-        state = AsyncData(previous);
-      } else {
-        final filtered = previous
-            .where((v) => v.activities
-                .any((a) => filter.activities.contains(a.icon)))
-            .toList();
-        state = AsyncData(filtered);
-      }
+      state = AsyncData(previous);
     }
 
-    // Defer the loading flag update to avoid modifying another provider
-    // during this provider's synchronous initialization phase.
     Future.microtask(() => ref.read(venueLoadingProvider.notifier).set(true));
 
     try {
       final venues = await client.fetchVenues(
-        lat: filter.lat,
-        lng: filter.lng,
-        radiusKm: filter.radiusKm,
-        activities: filter.activities.isEmpty ? null : filter.activities,
+        lat: spatial.lat,
+        lng: spatial.lng,
+        radiusKm: spatial.radiusKm,
       );
-      // Update available activity filters when fetching without filter,
-      // so the filter bar shows only activities that exist in this area.
-      if (filter.activities.isEmpty) {
-        ref.read(availableActivitiesProvider.notifier).update(venues);
-        ref.read(availableVenueTypesProvider.notifier).update(venues);
-      }
       return venues;
     } finally {
       ref.read(venueLoadingProvider.notifier).set(false);
@@ -91,51 +82,58 @@ class VenueNotifier extends AsyncNotifier<List<Venue>> {
 final venueProvider =
     AsyncNotifierProvider<VenueNotifier, List<Venue>>(VenueNotifier.new);
 
-/// Activities that actually exist in the currently loaded (unfiltered) venues.
-/// Updated each time a fresh venue fetch completes without activity filters.
-class _AvailableActivitiesNotifier extends Notifier<List<Activity>> {
-  @override
-  List<Activity> build() => [];
+// ---------------------------------------------------------------------------
+// Available filter options (derived from all loaded venues)
+// ---------------------------------------------------------------------------
 
-  void update(List<Venue> venues) {
-    final seen = <String>{};
-    final activities = <Activity>[];
-    for (final venue in venues) {
-      for (final a in venue.activities) {
-        if (seen.add(a.icon)) {
-          activities.add(a);
-        }
+/// All activities found in loaded venues.
+final availableActivitiesProvider = Provider<List<Activity>>((ref) {
+  final venues = ref.watch(venueProvider).value ?? [];
+  final seen = <String>{};
+  final activities = <Activity>[];
+  for (final venue in venues) {
+    for (final a in venue.activities) {
+      if (seen.add(a.icon)) {
+        activities.add(a);
       }
     }
-    activities.sort((a, b) => a.name.compareTo(b.name));
-    state = activities;
   }
-}
+  activities.sort((a, b) => a.name.compareTo(b.name));
+  return activities;
+});
 
-final availableActivitiesProvider =
-    NotifierProvider<_AvailableActivitiesNotifier, List<Activity>>(
-        _AvailableActivitiesNotifier.new);
+/// All venue types found in loaded venues.
+final availableVenueTypesProvider = Provider<List<String>>((ref) {
+  final venues = ref.watch(venueProvider).value ?? [];
+  return venues.map((v) => v.venueType).toSet().toList()..sort();
+});
 
-/// Venue types that exist in the currently loaded venues.
-class _AvailableVenueTypesNotifier extends Notifier<List<String>> {
-  @override
-  List<String> build() => [];
+// ---------------------------------------------------------------------------
+// Cross-filtered counts: each count reflects the OTHER active filters
+// so the user sees how many results toggling THIS filter would yield.
+// ---------------------------------------------------------------------------
 
-  void update(List<Venue> venues) {
-    final types = venues.map((v) => v.venueType).toSet().toList()..sort();
-    state = types;
-  }
-}
+bool _matchesWheelchair(Venue v) =>
+    v.wheelchair == 'yes' || v.wheelchair == 'limited';
 
-final availableVenueTypesProvider =
-    NotifierProvider<_AvailableVenueTypesNotifier, List<String>>(
-        _AvailableVenueTypesNotifier.new);
-
-/// Count of venues per activity icon in the current (unfiltered) dataset.
+/// Activity counts — filtered by venue type + wheelchair (not by activities).
 final activityCountsProvider = Provider<Map<String, int>>((ref) {
   final venues = ref.watch(venueProvider).value ?? [];
+  final filter = ref.watch(venueFilterProvider);
+
+  final filtered = venues.where((v) {
+    if (filter.venueTypes.isNotEmpty &&
+        !filter.venueTypes.contains(v.venueType)) {
+      return false;
+    }
+    if (filter.wheelchairOnly && !_matchesWheelchair(v)) {
+      return false;
+    }
+    return true;
+  });
+
   final counts = <String, int>{};
-  for (final venue in venues) {
+  for (final venue in filtered) {
     for (final a in venue.activities) {
       counts[a.icon] = (counts[a.icon] ?? 0) + 1;
     }
@@ -143,39 +141,68 @@ final activityCountsProvider = Provider<Map<String, int>>((ref) {
   return counts;
 });
 
-/// Count of venues per venue type in the current (unfiltered) dataset.
+/// Venue type counts — filtered by activities + wheelchair (not by venue type).
 final venueTypeCountsProvider = Provider<Map<String, int>>((ref) {
   final venues = ref.watch(venueProvider).value ?? [];
+  final filter = ref.watch(venueFilterProvider);
+
+  final filtered = venues.where((v) {
+    if (filter.activities.isNotEmpty &&
+        !v.activities.any((a) => filter.activities.contains(a.icon))) {
+      return false;
+    }
+    if (filter.wheelchairOnly && !_matchesWheelchair(v)) {
+      return false;
+    }
+    return true;
+  });
+
   final counts = <String, int>{};
-  for (final venue in venues) {
+  for (final venue in filtered) {
     counts[venue.venueType] = (counts[venue.venueType] ?? 0) + 1;
   }
   return counts;
 });
 
-/// Count of wheelchair-accessible venues in the current dataset.
+/// Wheelchair count — filtered by activities + venue type (not by wheelchair).
 final wheelchairCountProvider = Provider<int>((ref) {
   final venues = ref.watch(venueProvider).value ?? [];
-  return venues
-      .where((v) => v.wheelchair == 'yes' || v.wheelchair == 'limited')
-      .length;
+  final filter = ref.watch(venueFilterProvider);
+
+  return venues.where((v) {
+    if (filter.venueTypes.isNotEmpty &&
+        !filter.venueTypes.contains(v.venueType)) {
+      return false;
+    }
+    if (filter.activities.isNotEmpty &&
+        !v.activities.any((a) => filter.activities.contains(a.icon))) {
+      return false;
+    }
+    return _matchesWheelchair(v);
+  }).length;
 });
 
-/// Venues filtered client-side by venue type and wheelchair selection.
+// ---------------------------------------------------------------------------
+// Final filtered venue list (all filters applied)
+// ---------------------------------------------------------------------------
+
 final filteredVenueProvider = Provider<AsyncValue<List<Venue>>>((ref) {
   final venues = ref.watch(venueProvider);
   final filter = ref.watch(venueFilterProvider);
-  final hasTypeFilter = filter.venueTypes.isNotEmpty;
+  final hasActivities = filter.activities.isNotEmpty;
+  final hasTypes = filter.venueTypes.isNotEmpty;
   final hasWheelchair = filter.wheelchairOnly;
-  if (!hasTypeFilter && !hasWheelchair) return venues;
+
+  if (!hasActivities && !hasTypes && !hasWheelchair) return venues;
+
   return venues.whenData(
     (list) => list.where((v) {
-      if (hasTypeFilter && !filter.venueTypes.contains(v.venueType)) {
+      if (hasTypes && !filter.venueTypes.contains(v.venueType)) return false;
+      if (hasActivities &&
+          !v.activities.any((a) => filter.activities.contains(a.icon))) {
         return false;
       }
-      if (hasWheelchair && v.wheelchair != 'yes' && v.wheelchair != 'limited') {
-        return false;
-      }
+      if (hasWheelchair && !_matchesWheelchair(v)) return false;
       return true;
     }).toList(),
   );

@@ -48,7 +48,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   void _onMapEvent(MapEvent event) {
-    _currentZoom = event.camera.zoom;
+    final newZoom = event.camera.zoom;
+    // Rebuild markers when zoom crosses a clustering threshold.
+    if (newZoom.floor() != _currentZoom.floor()) {
+      _currentZoom = newZoom;
+      setState(() {});
+    } else {
+      _currentZoom = newZoom;
+    }
     if (event is MapEventMoveEnd) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(const Duration(milliseconds: 500), () {

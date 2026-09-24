@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -245,14 +246,23 @@ class VenueDetailSheet extends ConsumerWidget {
 
       const SizedBox(height: 24),
 
-      // Route button
-      SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          onPressed: () => _openRoute(venue),
-          icon: const Icon(Icons.directions),
-          label: const Text('Route planen'),
-        ),
+      // Action buttons
+      Row(
+        children: [
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () => _openRoute(venue),
+              icon: const Icon(Icons.directions),
+              label: const Text('Route planen'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          FilledButton.tonalIcon(
+            onPressed: () => _shareVenue(context, venue),
+            icon: const Icon(Icons.share),
+            label: const Text('Teilen'),
+          ),
+        ],
       ),
     ];
   }
@@ -271,6 +281,21 @@ class VenueDetailSheet extends ConsumerWidget {
         .replaceFirst(RegExp(r'^https?://'), '')
         .replaceFirst(RegExp(r'^www\.'), '')
         .replaceFirst(RegExp(r'/$'), '');
+  }
+
+  static Future<void> _shareVenue(BuildContext context, Venue venue) async {
+    final mapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=${venue.latitude},${venue.longitude}';
+    final text = '${venue.name}\n$mapsUrl';
+    await Clipboard.setData(ClipboardData(text: text));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link in Zwischenablage kopiert'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   static Future<void> _openRoute(Venue venue) async {

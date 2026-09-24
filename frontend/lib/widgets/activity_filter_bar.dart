@@ -27,17 +27,35 @@ class ActivityFilterBar extends ConsumerWidget {
         itemBuilder: (context, index) {
           final activity = activities[index];
           final isSelected = selectedActivities.contains(activity.icon);
-
           final count = counts[activity.icon] ?? 0;
+          final isDisabled = count == 0 && !isSelected;
+
           return FilterChip(
-            label: Text(count > 0
-                ? '${activity.name} ($count)'
-                : activity.name),
+            label: Text(
+              count > 0
+                  ? '${activity.name} ($count)'
+                  : activity.name,
+              style: isDisabled
+                  ? TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.38))
+                  : null,
+            ),
             selected: isSelected,
-            onSelected: (_) => _toggleActivity(ref, activity.icon),
+            onSelected: isDisabled
+                ? null
+                : (_) => _toggleActivity(ref, activity.icon),
             avatar: Icon(
               _activityIcon(activity.icon),
               size: 18,
+              color: isDisabled
+                  ? Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.38)
+                  : null,
             ),
             showCheckmark: false,
             selectedColor: Theme.of(context).colorScheme.primaryContainer,

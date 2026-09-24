@@ -25,15 +25,36 @@ class VenueTypeFilterBar extends ConsumerWidget {
         itemBuilder: (context, index) {
           final type = types[index];
           final isSelected = selected.contains(type);
-
           final count = counts[type] ?? 0;
+          final isDisabled = count == 0 && !isSelected;
+
           return FilterChip(
-            label: Text(count > 0
-                ? '${venueTypeLabel(type)} ($count)'
-                : venueTypeLabel(type)),
+            label: Text(
+              count > 0
+                  ? '${venueTypeLabel(type)} ($count)'
+                  : venueTypeLabel(type),
+              style: isDisabled
+                  ? TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.38))
+                  : null,
+            ),
             selected: isSelected,
-            onSelected: (_) => _toggle(ref, type),
-            avatar: Icon(_icon(type), size: 18),
+            onSelected: isDisabled
+                ? null
+                : (_) => _toggle(ref, type),
+            avatar: Icon(
+              _icon(type),
+              size: 18,
+              color: isDisabled
+                  ? Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.38)
+                  : null,
+            ),
             showCheckmark: false,
             selectedColor: Theme.of(context).colorScheme.primaryContainer,
           );

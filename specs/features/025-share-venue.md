@@ -1,6 +1,6 @@
 # Feature 025: Venue teilen
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich eine Bar per Link mit Freunden teilen können, damit sie direkt dorthin navigieren können.
