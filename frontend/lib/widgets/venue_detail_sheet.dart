@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/geo_utils.dart';
+import '../core/opening_hours.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
@@ -172,31 +173,33 @@ class VenueDetailSheet extends ConsumerWidget {
       const SizedBox(height: 16),
 
       // Feature badges row
-      if (venue.outdoorSeating ||
-          venue.wheelchair.isNotEmpty) ...[
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            if (venue.outdoorSeating)
-              _FeatureBadge(
-                icon: Icons.deck,
-                label: 'Außenbereich',
-              ),
-            if (venue.wheelchair == 'yes')
-              _FeatureBadge(
+      Builder(builder: (context) {
+        final ohStatus = venue.openingHours.isNotEmpty
+            ? parseOpeningHours(venue.openingHours)
+            : null;
+        final badges = <Widget>[
+          if (ohStatus != null)
+            _FeatureBadge(
+              icon: ohStatus.isOpen ? Icons.check_circle : Icons.cancel,
+              label: ohStatus.nextChange ??
+                  (ohStatus.isOpen ? 'Geöffnet' : 'Geschlossen'),
+              color: ohStatus.isOpen ? pubScoutGreen : pubScoutCoral,
+            ),
+          if (venue.outdoorSeating)
+            _FeatureBadge(icon: Icons.deck, label: 'Außenbereich'),
+          if (venue.wheelchair == 'yes')
+            _FeatureBadge(icon: Icons.accessible, label: 'Barrierefrei'),
+          if (venue.wheelchair == 'limited')
+            _FeatureBadge(
                 icon: Icons.accessible,
-                label: 'Barrierefrei',
-              ),
-            if (venue.wheelchair == 'limited')
-              _FeatureBadge(
-                icon: Icons.accessible,
-                label: 'Eingeschränkt barrierefrei',
-              ),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
+                label: 'Eingeschränkt barrierefrei'),
+        ];
+        if (badges.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Wrap(spacing: 8, runSpacing: 6, children: badges),
+        );
+      }),
 
       // Info cards
       Container(
@@ -220,7 +223,7 @@ class VenueDetailSheet extends ConsumerWidget {
               _InfoTile(
                 icon: Icons.schedule,
                 label: 'Öffnungszeiten',
-                value: venue.openingHours,
+                value: parseOpeningHours(venue.openingHours).formatted,
                 showDivider:
                     venue.phone.isNotEmpty || venue.website.isNotEmpty,
               ),
@@ -318,26 +321,31 @@ class VenueDetailSheet extends ConsumerWidget {
 class _FeatureBadge extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color? color;
 
-  const _FeatureBadge({required this.icon, required this.label});
+  const _FeatureBadge({
+    required this.icon,
+    required this.label,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = color ?? theme.colorScheme.secondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
+        color: c.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: theme.colorScheme.secondary),
+          Icon(icon, size: 16, color: c),
           const SizedBox(width: 4),
           Text(label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.secondary)),
+              style: theme.textTheme.labelSmall?.copyWith(color: c)),
         ],
       ),
     );

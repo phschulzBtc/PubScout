@@ -1,6 +1,6 @@
 # Feature 026: Öffnungszeiten-Parsing und "Jetzt geöffnet"
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich sehen ob eine Bar gerade geöffnet hat, damit ich nicht vor verschlossener Tür stehe.

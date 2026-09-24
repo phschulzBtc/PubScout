@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/geo_utils.dart';
+import '../core/opening_hours.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
@@ -22,7 +23,6 @@ class VenueListPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final favoriteIds = ref
             .watch(favoritesProvider)
             .value
@@ -108,11 +108,7 @@ class VenueListPanel extends ConsumerWidget {
               overflow: TextOverflow.ellipsis),
           subtitle: Text(subtitle,
               maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: venue.activities.isNotEmpty
-              ? Text('${venue.activities.length}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant))
-              : null,
+          trailing: _TrailingInfo(venue: venue),
           onTap: () => onVenueTap(venue),
         );
       },
@@ -126,6 +122,39 @@ class VenueListPanel extends ConsumerWidget {
       'nightclub' => Icons.nightlife,
       _ => Icons.sports_bar,
     };
+  }
+}
+
+class _TrailingInfo extends StatelessWidget {
+  final Venue venue;
+  const _TrailingInfo({required this.venue});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final oh = venue.openingHours.isNotEmpty
+        ? parseOpeningHours(venue.openingHours)
+        : null;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (oh != null)
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(right: 6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: oh.isOpen ? pubScoutGreen : pubScoutCoral,
+            ),
+          ),
+        if (venue.activities.isNotEmpty)
+          Text('${venue.activities.length}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant)),
+      ],
+    );
   }
 }
 
