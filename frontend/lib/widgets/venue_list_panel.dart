@@ -35,12 +35,14 @@ class VenueListPanel extends ConsumerWidget {
     if (venues.isEmpty) {
       return _EmptyState(
         hasFilters: filter.activities.isNotEmpty ||
-            filter.venueTypes.isNotEmpty,
+            filter.venueTypes.isNotEmpty ||
+            filter.wheelchairOnly,
         radiusKm: filter.radiusKm,
         onClearFilters: () {
           ref.read(venueFilterProvider.notifier).update(
                 activities: [],
                 venueTypes: [],
+                wheelchairOnly: false,
               );
         },
       );

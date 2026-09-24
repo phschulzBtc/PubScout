@@ -162,7 +162,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   .update(lat: lat, lng: lng);
             },
           ),
-          const VenueTypeFilterBar(),
+          Row(
+            children: [
+              const Expanded(child: VenueTypeFilterBar()),
+              _WheelchairChip(),
+            ],
+          ),
           Row(
             children: [
               const Expanded(child: ActivityFilterBar()),
@@ -259,6 +264,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     ? () => ref.read(venueFilterProvider.notifier).update(
                           activities: [],
                           venueTypes: [],
+                          wheelchairOnly: false,
                         )
                     : null,
               ),
@@ -270,7 +276,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   bool _hasActiveFilters() {
     final filter = ref.read(venueFilterProvider);
-    return filter.activities.isNotEmpty || filter.venueTypes.isNotEmpty;
+    return filter.activities.isNotEmpty ||
+        filter.venueTypes.isNotEmpty ||
+        filter.wheelchairOnly;
   }
 
   // Mobile: fullscreen map, venues shown via bottom sheet on tap
@@ -883,6 +891,30 @@ class _LoadingPillState extends State<_LoadingPill>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _WheelchairChip extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isActive = ref.watch(venueFilterProvider).wheelchairOnly;
+    final count = ref.watch(wheelchairCountProvider);
+
+    if (count == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: FilterChip(
+        label: Text(isActive ? 'Barrierefrei ($count)' : 'Barrierefrei'),
+        selected: isActive,
+        onSelected: (_) => ref
+            .read(venueFilterProvider.notifier)
+            .update(wheelchairOnly: !isActive),
+        avatar: const Icon(Icons.accessible, size: 18),
+        showCheckmark: false,
+        selectedColor: Theme.of(context).colorScheme.primaryContainer,
       ),
     );
   }

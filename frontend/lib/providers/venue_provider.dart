@@ -17,6 +17,7 @@ class VenueFilterNotifier extends Notifier<VenueFilter> {
     double? radiusKm,
     List<String>? activities,
     List<String>? venueTypes,
+    bool? wheelchairOnly,
   }) {
     state = state.copyWith(
       lat: lat,
@@ -24,6 +25,7 @@ class VenueFilterNotifier extends Notifier<VenueFilter> {
       radiusKm: radiusKm,
       activities: activities,
       venueTypes: venueTypes,
+      wheelchairOnly: wheelchairOnly,
     );
   }
 }
@@ -151,12 +153,30 @@ final venueTypeCountsProvider = Provider<Map<String, int>>((ref) {
   return counts;
 });
 
-/// Venues filtered client-side by venue type selection.
+/// Count of wheelchair-accessible venues in the current dataset.
+final wheelchairCountProvider = Provider<int>((ref) {
+  final venues = ref.watch(venueProvider).value ?? [];
+  return venues
+      .where((v) => v.wheelchair == 'yes' || v.wheelchair == 'limited')
+      .length;
+});
+
+/// Venues filtered client-side by venue type and wheelchair selection.
 final filteredVenueProvider = Provider<AsyncValue<List<Venue>>>((ref) {
   final venues = ref.watch(venueProvider);
-  final selectedTypes = ref.watch(venueFilterProvider).venueTypes;
-  if (selectedTypes.isEmpty) return venues;
+  final filter = ref.watch(venueFilterProvider);
+  final hasTypeFilter = filter.venueTypes.isNotEmpty;
+  final hasWheelchair = filter.wheelchairOnly;
+  if (!hasTypeFilter && !hasWheelchair) return venues;
   return venues.whenData(
-    (list) => list.where((v) => selectedTypes.contains(v.venueType)).toList(),
+    (list) => list.where((v) {
+      if (hasTypeFilter && !filter.venueTypes.contains(v.venueType)) {
+        return false;
+      }
+      if (hasWheelchair && v.wheelchair != 'yes' && v.wheelchair != 'limited') {
+        return false;
+      }
+      return true;
+    }).toList(),
   );
 });

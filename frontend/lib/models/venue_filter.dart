@@ -9,6 +9,7 @@ class VenueFilter {
   final double radiusKm;
   final List<String> activities;
   final List<String> venueTypes;
+  final bool wheelchairOnly;
 
   const VenueFilter({
     this.lat = defaultLatitude,
@@ -16,6 +17,7 @@ class VenueFilter {
     this.radiusKm = defaultSearchRadiusKm,
     this.activities = const [],
     this.venueTypes = const [],
+    this.wheelchairOnly = false,
   });
 
   VenueFilter copyWith({
@@ -24,6 +26,7 @@ class VenueFilter {
     double? radiusKm,
     List<String>? activities,
     List<String>? venueTypes,
+    bool? wheelchairOnly,
   }) {
     return VenueFilter(
       lat: lat ?? this.lat,
@@ -31,6 +34,7 @@ class VenueFilter {
       radiusKm: radiusKm ?? this.radiusKm,
       activities: activities ?? this.activities,
       venueTypes: venueTypes ?? this.venueTypes,
+      wheelchairOnly: wheelchairOnly ?? this.wheelchairOnly,
     );
   }
 }
