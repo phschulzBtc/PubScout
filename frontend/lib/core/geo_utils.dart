@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import '../l10n/app_localizations.dart';
+
 double distanceKm(double lat1, double lng1, double lat2, double lng2) {
   const earthRadiusKm = 6371.0;
   final dLat = _toRadians(lat2 - lat1);
@@ -18,12 +20,13 @@ String formatDistance(double km) {
   return '${km.toStringAsFixed(1)} km';
 }
 
-String venueTypeLabel(String type) {
+/// Localized venue type label. Requires a BuildContext with AppLocalizations.
+String venueTypeLabel(String type, AppLocalizations l10n) {
   return switch (type) {
-    'pub' => 'Kneipe',
-    'bar' => 'Bar',
-    'biergarten' => 'Biergarten',
-    'nightclub' => 'Nachtclub',
+    'pub' => l10n.venueTypePub,
+    'bar' => l10n.venueTypeBar,
+    'biergarten' => l10n.venueTypeBiergarten,
+    'nightclub' => l10n.venueTypeNightclub,
     _ => type,
   };
 }

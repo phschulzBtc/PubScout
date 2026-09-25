@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../providers/connectivity_provider.dart';
 
 class OfflineBanner extends ConsumerWidget {
@@ -15,14 +16,14 @@ class OfflineBanner extends ConsumerWidget {
       width: double.infinity,
       color: Colors.orange.shade800,
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_off, size: 14, color: Colors.white),
-          SizedBox(width: 6),
+          const Icon(Icons.cloud_off, size: 14, color: Colors.white),
+          const SizedBox(width: 6),
           Text(
-            'Offline — Favoriten weiterhin verfügbar',
-            style: TextStyle(color: Colors.white, fontSize: 12),
+            AppLocalizations.of(context)!.offlineBanner,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
         ],
       ),

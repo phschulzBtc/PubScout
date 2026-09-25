@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_localizations.dart';
 import '../providers/venue_provider.dart';
 
 const _radiusOptions = [0.5, 1.0, 2.0, 5.0, 10.0];
@@ -44,7 +45,7 @@ class _RadiusSelectorState extends ConsumerState<RadiusSelector> {
 
     return PopupMenuButton<double>(
       onSelected: _setRadius,
-      tooltip: 'Suchradius',
+      tooltip: AppLocalizations.of(context)!.searchRadius,
       position: PopupMenuPosition.under,
       initialValue: currentRadius,
       itemBuilder: (_) => _radiusOptions

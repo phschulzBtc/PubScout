@@ -1,6 +1,6 @@
 # Feature 032: Routenführung in der Karte
 
-## Status: draft
+## Status: deferred
 
 ## User Story
 Als Nutzer möchte ich die Route zu einer Bar direkt in der App sehen, ohne zu Google Maps wechseln zu müssen.

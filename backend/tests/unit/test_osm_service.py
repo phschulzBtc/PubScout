@@ -294,5 +294,6 @@ async def test_identical_parallel_fetches_share_one_failure(make_client, cache):
         return_exceptions=True,
     )
 
-    assert state["requests"] == 1
+    # 2 requests: initial + 1 retry (rate limit triggers auto-retry)
+    assert state["requests"] == 2
     assert all(isinstance(result, OverpassRateLimitError) for result in results)

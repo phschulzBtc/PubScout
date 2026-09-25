@@ -1,13 +1,23 @@
 import json
+import logging
 import time
 
 import aiosqlite
+
+CACHE_SCHEMA_VERSION = 2
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS venue_cache (
     cache_key TEXT PRIMARY KEY,
     response_json TEXT NOT NULL,
     created_at REAL NOT NULL
+)
+"""
+
+_CREATE_META_TABLE = """
+CREATE TABLE IF NOT EXISTS cache_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
 )
 """
 
@@ -24,6 +34,8 @@ _COUNT = "SELECT COUNT(*) FROM venue_cache"
 
 _DELETE_EXPIRED = "DELETE FROM venue_cache WHERE created_at < ?"
 
+logger = logging.getLogger(__name__)
+
 
 class CacheService:
     def __init__(self, db_path: str, ttl_hours: int = 24) -> None:
@@ -35,8 +47,30 @@ class CacheService:
 
     async def init(self) -> None:
         self._db = await aiosqlite.connect(self._db_path)
+        await self._db.execute(_CREATE_META_TABLE)
         await self._db.execute(_CREATE_TABLE)
         await self._db.commit()
+        await self._check_schema_version()
+
+    async def _check_schema_version(self) -> None:
+        cursor = await self._db.execute(
+            "SELECT value FROM cache_meta WHERE key = 'schema_version'"
+        )
+        row = await cursor.fetchone()
+        stored = int(row[0]) if row else 0
+        if stored != CACHE_SCHEMA_VERSION:
+            logger.info(
+                "Cache schema version changed (%d → %d), clearing cache",
+                stored,
+                CACHE_SCHEMA_VERSION,
+            )
+            await self._db.execute("DELETE FROM venue_cache")
+            await self._db.execute(
+                "INSERT OR REPLACE INTO cache_meta"
+                " (key, value) VALUES ('schema_version', ?)",
+                (str(CACHE_SCHEMA_VERSION),),
+            )
+            await self._db.commit()
 
     async def close(self) -> None:
         if self._db:

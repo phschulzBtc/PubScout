@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/geo_utils.dart';
 import '../core/opening_hours.dart';
 import '../core/theme.dart';
+import '../l10n/app_localizations.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
 import '../widgets/venue_detail_sheet.dart';
@@ -18,7 +19,7 @@ class FavoritesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Favoriten'),
+        title: Text(AppLocalizations.of(context)!.favorites),
       ),
       body: favorites.when(
         data: (list) {
@@ -30,12 +31,12 @@ class FavoritesScreen extends ConsumerWidget {
                   Icon(Icons.favorite_border,
                       size: 64, color: theme.colorScheme.outlineVariant),
                   const SizedBox(height: 16),
-                  Text('Noch keine Favoriten',
+                  Text(AppLocalizations.of(context)!.noFavoritesTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant)),
                   const SizedBox(height: 8),
                   Text(
-                    'Tippe auf das Herz-Icon bei einem Venue,\num ihn als Favorit zu speichern.',
+                    AppLocalizations.of(context)!.noFavoritesHint,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant),
@@ -55,7 +56,8 @@ class FavoritesScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Fehler: $e')),
+        error: (e, _) => Center(
+            child: Text(AppLocalizations.of(context)!.errorGeneric(e.toString()))),
       ),
     );
   }
@@ -100,7 +102,7 @@ class _FavoriteTile extends ConsumerWidget {
             style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(
           [
-            venueTypeLabel(venue.venueType),
+            venueTypeLabel(venue.venueType, AppLocalizations.of(context)!),
             if (venue.address.isNotEmpty) venue.address,
           ].join(' · '),
           maxLines: 1,

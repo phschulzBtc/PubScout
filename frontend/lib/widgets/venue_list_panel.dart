@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/geo_utils.dart';
 import '../core/opening_hours.dart';
 import '../core/theme.dart';
+import '../l10n/app_localizations.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/location_provider.dart';
@@ -70,7 +71,7 @@ class VenueListPanel extends ConsumerWidget {
         final isFav = favoriteIds.contains(venue.osmId);
         final isSelected = selectedVenue == venue;
 
-        String subtitle = venueTypeLabel(venue.venueType);
+        String subtitle = venueTypeLabel(venue.venueType, AppLocalizations.of(context)!);
         if (userLoc != null) {
           final dist = distanceKm(userLoc.latitude, userLoc.longitude,
               venue.latitude, venue.longitude);
@@ -183,8 +184,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               hasFilters
-                  ? 'Keine Venues mit diesen Filtern gefunden'
-                  : 'Keine Venues im Umkreis von ${formatDistance(radiusKm)}',
+                  ? AppLocalizations.of(context)!.noVenuesWithFilters
+                  : AppLocalizations.of(context)!.noVenuesInRadius(formatDistance(radiusKm)),
               style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
@@ -193,7 +194,7 @@ class _EmptyState extends StatelessWidget {
             if (hasFilters)
               FilledButton.tonal(
                 onPressed: onClearFilters,
-                child: const Text('Filter entfernen'),
+                child: Text(AppLocalizations.of(context)!.clearFilters),
               ),
           ],
         ),

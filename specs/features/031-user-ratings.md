@@ -1,6 +1,6 @@
 # Feature 031: Bewertungen und Kommentare
 
-## Status: draft
+## Status: deferred (requires backend database)
 
 ## User Story
 Als Nutzer möchte ich Bars bewerten und Kommentare hinterlassen können, damit andere Nutzer von meinen Erfahrungen profitieren.

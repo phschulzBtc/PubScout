@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import math
 from dataclasses import dataclass
 
@@ -28,6 +29,9 @@ OVERPASS_MIN_REQUEST_INTERVAL_SECONDS = 1.0
 OVERPASS_MAX_CONCURRENT_REQUESTS = 1
 OVERPASS_RUNTIME_ERROR_MARKER = "runtime error"
 OVERPASS_TIMEOUT_MARKER = "timed out"
+RETRY_DELAY_TIMEOUT_SECONDS = 2
+RETRY_DELAY_RATE_LIMIT_SECONDS = 5
+MAX_RETRIES = 1
 VENUE_AMENITY_FILTER = '["amenity"~"^(pub|bar|biergarten|nightclub)$"]'
 VENUE_SET_NAME = "venues"
 # Overpass rejects generic library user agents with HTTP 406.
@@ -44,6 +48,9 @@ class OverpassTimeoutError(OverpassApiError):
 
 class OverpassRateLimitError(OverpassApiError):
     """Overpass API rejected the request due to rate limiting (HTTP 429)."""
+
+
+logger = logging.getLogger(__name__)
 
 
 class OverpassClient:
@@ -67,7 +74,20 @@ class OverpassClient:
     async def query(self, overpass_query: str) -> dict:
         async with self._concurrency:
             await self._rate_limiter.wait_for_slot()
-            return await self._post(overpass_query)
+            try:
+                return await self._post(overpass_query)
+            except OverpassTimeoutError:
+                delay = RETRY_DELAY_TIMEOUT_SECONDS
+                logger.info("Overpass timeout, retrying in %ds", delay)
+                await asyncio.sleep(delay)
+                await self._rate_limiter.wait_for_slot()
+                return await self._post(overpass_query)
+            except OverpassRateLimitError:
+                delay = RETRY_DELAY_RATE_LIMIT_SECONDS
+                logger.info("Overpass rate limit, retrying in %ds", delay)
+                await asyncio.sleep(RETRY_DELAY_RATE_LIMIT_SECONDS)
+                await self._rate_limiter.wait_for_slot()
+                return await self._post(overpass_query)
 
     async def _post(self, overpass_query: str) -> dict:
         try:

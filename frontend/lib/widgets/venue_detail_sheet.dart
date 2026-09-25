@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/geo_utils.dart';
 import '../core/opening_hours.dart';
 import '../core/theme.dart';
+import '../l10n/app_localizations.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
 
@@ -121,7 +122,7 @@ class VenueDetailSheet extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
-                    venueTypeLabel(venue.venueType),
+                    venueTypeLabel(venue.venueType, AppLocalizations.of(context)!),
                     if (venue.address.isNotEmpty) venue.address,
                   ].join(' · '),
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -182,17 +183,23 @@ class VenueDetailSheet extends ConsumerWidget {
             _FeatureBadge(
               icon: ohStatus.isOpen ? Icons.check_circle : Icons.cancel,
               label: ohStatus.nextChange ??
-                  (ohStatus.isOpen ? 'Geöffnet' : 'Geschlossen'),
+                  (ohStatus.isOpen
+                      ? AppLocalizations.of(context)!.opened
+                      : AppLocalizations.of(context)!.closed),
               color: ohStatus.isOpen ? pubScoutGreen : pubScoutCoral,
             ),
           if (venue.outdoorSeating)
-            _FeatureBadge(icon: Icons.deck, label: 'Außenbereich'),
+            _FeatureBadge(
+                icon: Icons.deck,
+                label: AppLocalizations.of(context)!.outdoorSeating),
           if (venue.wheelchair == 'yes')
-            _FeatureBadge(icon: Icons.accessible, label: 'Barrierefrei'),
+            _FeatureBadge(
+                icon: Icons.accessible,
+                label: AppLocalizations.of(context)!.accessible),
           if (venue.wheelchair == 'limited')
             _FeatureBadge(
                 icon: Icons.accessible,
-                label: 'Eingeschränkt barrierefrei'),
+                label: AppLocalizations.of(context)!.limitedAccessible),
         ];
         if (badges.isEmpty) return const SizedBox.shrink();
         return Padding(
@@ -212,7 +219,7 @@ class VenueDetailSheet extends ConsumerWidget {
             if (userLat != null && userLng != null)
               _InfoTile(
                 icon: Icons.near_me,
-                label: 'Entfernung',
+                label: AppLocalizations.of(context)!.distance,
                 value: formatDistance(distanceKm(
                     userLat, userLng, venue.latitude, venue.longitude)),
                 showDivider: venue.openingHours.isNotEmpty ||
@@ -222,7 +229,7 @@ class VenueDetailSheet extends ConsumerWidget {
             if (venue.openingHours.isNotEmpty)
               _InfoTile(
                 icon: Icons.schedule,
-                label: 'Öffnungszeiten',
+                label: AppLocalizations.of(context)!.openingHours,
                 value: parseOpeningHours(venue.openingHours).formatted,
                 showDivider:
                     venue.phone.isNotEmpty || venue.website.isNotEmpty,
@@ -230,7 +237,7 @@ class VenueDetailSheet extends ConsumerWidget {
             if (venue.phone.isNotEmpty)
               _InfoTile(
                 icon: Icons.phone,
-                label: 'Telefon',
+                label: AppLocalizations.of(context)!.phone,
                 value: venue.phone,
                 showDivider: venue.website.isNotEmpty,
                 onTap: () => _launchUrl('tel:${venue.phone}'),
@@ -238,7 +245,7 @@ class VenueDetailSheet extends ConsumerWidget {
             if (venue.website.isNotEmpty)
               _InfoTile(
                 icon: Icons.language,
-                label: 'Website',
+                label: AppLocalizations.of(context)!.website,
                 value: _shortenUrl(venue.website),
                 showDivider: false,
                 onTap: () => _launchUrl(venue.website),
@@ -256,14 +263,14 @@ class VenueDetailSheet extends ConsumerWidget {
             child: FilledButton.icon(
               onPressed: () => _openRoute(venue),
               icon: const Icon(Icons.directions),
-              label: const Text('Route planen'),
+              label: Text(AppLocalizations.of(context)!.planRoute),
             ),
           ),
           const SizedBox(width: 12),
           FilledButton.tonalIcon(
             onPressed: () => _shareVenue(context, venue),
             icon: const Icon(Icons.share),
-            label: const Text('Teilen'),
+            label: Text(AppLocalizations.of(context)!.share),
           ),
         ],
       ),
@@ -293,8 +300,8 @@ class VenueDetailSheet extends ConsumerWidget {
     await Clipboard.setData(ClipboardData(text: text));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link in Zwischenablage kopiert'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.linkCopied),
           duration: Duration(seconds: 2),
         ),
       );

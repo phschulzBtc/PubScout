@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/geo_utils.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/venue_provider.dart';
 
 class VenueTypeFilterBar extends ConsumerWidget {
@@ -31,8 +32,8 @@ class VenueTypeFilterBar extends ConsumerWidget {
           return FilterChip(
             label: Text(
               count > 0
-                  ? '${venueTypeLabel(type)} ($count)'
-                  : venueTypeLabel(type),
+                  ? '${venueTypeLabel(type, AppLocalizations.of(context)!)} ($count)'
+                  : venueTypeLabel(type, AppLocalizations.of(context)!),
               style: isDisabled
                   ? TextStyle(
                       color: Theme.of(context)

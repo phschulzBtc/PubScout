@@ -1,6 +1,6 @@
 # Feature 034: Cache-Versionierung
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Entwickler möchte ich dass der Backend-Cache nach Schema-Änderungen automatisch invalidiert wird, damit Nutzer keine veralteten Daten sehen.

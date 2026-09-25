@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../l10n/app_localizations.dart';
 import '../services/nominatim_service.dart';
 import '../services/search_history_service.dart';
 
@@ -124,7 +125,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             focusNode: _focusNode,
             onChanged: _onSearchChanged,
             decoration: InputDecoration(
-              hintText: 'Ort oder Adresse suchen...',
+              hintText: AppLocalizations.of(context)!.searchHint,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _controller.text.isNotEmpty
                   ? IconButton(
@@ -245,7 +246,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           ListTile(
             leading: Icon(Icons.delete_outline,
                 size: 20, color: pubScoutCoral),
-            title: Text('Verlauf löschen',
+            title: Text(AppLocalizations.of(context)!.clearHistory,
                 style: TextStyle(color: pubScoutCoral, fontSize: 14)),
             dense: true,
             onTap: _clearHistory,

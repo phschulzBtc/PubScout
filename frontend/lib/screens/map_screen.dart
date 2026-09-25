@@ -11,7 +11,9 @@ import 'package:latlong2/latlong.dart';
 import '../core/constants.dart';
 import '../core/geo_utils.dart';
 import '../core/theme.dart';
+import '../l10n/app_localizations.dart';
 import '../models/venue.dart';
+import '../providers/api_client_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/location_provider.dart';
@@ -35,6 +37,7 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   final MapController _mapController = MapController();
   Timer? _debounceTimer;
+  Timer? _preloadTimer;
   bool _initialLocationSet = false;
   Venue? _selectedVenue;
   // Tracked from map events: MapController.camera throws until FlutterMap
@@ -44,6 +47,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _preloadTimer?.cancel();
     _mapController.dispose();
     super.dispose();
   }
@@ -58,7 +62,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       _currentZoom = newZoom;
     }
     if (event is MapEventMoveEnd) {
+      _preloadTimer?.cancel();
       _debounceTimer?.cancel();
+
+      // Preload: fire a cache-warming request after 200ms
+      _preloadTimer = Timer(const Duration(milliseconds: 200), () {
+        final center = _mapController.camera.center;
+        final radius = ref.read(venueFilterProvider).radiusKm;
+        // Fire-and-forget: warm the cache for the current viewport
+        ref.read(apiClientProvider).fetchVenues(
+              lat: center.latitude,
+              lng: center.longitude,
+              radiusKm: radius,
+            );
+      });
+
+      // Display update: update filter state after 500ms (will hit cache)
       _debounceTimer = Timer(const Duration(milliseconds: 500), () {
         final center = _mapController.camera.center;
         ref.read(venueFilterProvider.notifier).update(
@@ -119,12 +138,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           _buildVenueCount(context, venues),
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Neu laden',
+            tooltip: AppLocalizations.of(context)!.refresh,
             onPressed: _refreshVenues,
           ),
           IconButton(
             icon: const Icon(Icons.favorite),
-            tooltip: 'Favoriten',
+            tooltip: AppLocalizations.of(context)!.favorites,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const FavoritesScreen()),
             ),
@@ -156,7 +175,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _goToUserLocation,
-        tooltip: 'Mein Standort',
+        tooltip: AppLocalizations.of(context)!.myLocation,
         child: const Icon(Icons.my_location),
       ),
     );
@@ -264,7 +283,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  'Fehler beim Laden: ${venues.error}',
+                  AppLocalizations.of(context)!.errorLoading(venues.error.toString()),
                   style: TextStyle(
                     color:
                         Theme.of(context).colorScheme.onErrorContainer,
@@ -448,7 +467,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ],
           Text(
             filterCount > 0
-                ? '$count ($filterCount Filter)'
+                ? AppLocalizations.of(context)!.nFilters(count, filterCount)
                 : '$count',
             style: const TextStyle(
                 color: pubScoutCream,
@@ -647,7 +666,7 @@ class _ClusterBottomSheet extends StatelessWidget {
                             size: 20, color: pubScoutGreen),
                         const SizedBox(width: 8),
                         Text(
-                          '${venues.length} Venues',
+                          AppLocalizations.of(context)!.nVenues(venues.length),
                           style: theme.textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -689,7 +708,7 @@ class _ClusterBottomSheet extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                       subtitle: Text(
-                        venueTypeLabel(venue.venueType) +
+                        venueTypeLabel(venue.venueType, AppLocalizations.of(context)!) +
                             (venue.address.isNotEmpty
                                 ? ' · ${venue.address}'
                                 : ''),
@@ -899,10 +918,10 @@ class _LoadingPillState extends State<_LoadingPill>
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 14,
               height: 14,
               child: CircularProgressIndicator(
@@ -910,10 +929,10 @@ class _LoadingPillState extends State<_LoadingPill>
                 color: Colors.white,
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
-              'Venues laden...',
-              style: TextStyle(color: Colors.white, fontSize: 13),
+              AppLocalizations.of(context)!.loadingVenues,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
           ],
         ),
@@ -933,7 +952,9 @@ class _WheelchairChip extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: FilterChip(
-        label: Text(isActive ? 'Barrierefrei ($count)' : 'Barrierefrei'),
+        label: Text(isActive
+            ? AppLocalizations.of(context)!.accessibleWithCount(count)
+            : AppLocalizations.of(context)!.accessible),
         selected: isActive,
         onSelected: (_) => ref
             .read(venueFilterProvider.notifier)
@@ -971,8 +992,8 @@ class _EmptyResultPill extends StatelessWidget {
         children: [
           const Icon(Icons.search_off, size: 16),
           const SizedBox(width: 8),
-          const Text('Keine Venues gefunden',
-              style: TextStyle(fontSize: 13)),
+          Text(AppLocalizations.of(context)!.noVenuesFound,
+              style: const TextStyle(fontSize: 13)),
           if (onClearFilters != null) ...[
             const SizedBox(width: 8),
             GestureDetector(
@@ -984,8 +1005,8 @@ class _EmptyResultPill extends StatelessWidget {
                   color: pubScoutGreen,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text('Filter entfernen',
-                    style: TextStyle(
+                child: Text(AppLocalizations.of(context)!.clearFilters,
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.w600)),

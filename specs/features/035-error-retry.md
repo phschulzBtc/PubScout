@@ -1,6 +1,6 @@
 # Feature 035: Automatischer Retry bei Overpass-Timeout
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich dass die App bei einem Timeout automatisch nochmal versucht Daten zu laden, damit ich nicht manuell neu laden muss.
