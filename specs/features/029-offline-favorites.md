@@ -1,6 +1,6 @@
 # Feature 029: Offline-Modus für Favoriten
 
-## Status: draft
+## Status: done
 
 ## User Story
 Als Nutzer möchte ich meine Favoriten auch ohne Internet sehen und dorthin navigieren können.

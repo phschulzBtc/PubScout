@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/geo_utils.dart';
+import '../core/opening_hours.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
 import '../providers/favorites_provider.dart';
@@ -67,6 +69,9 @@ class _FavoriteTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final oh = venue.openingHours.isNotEmpty
+        ? parseOpeningHours(venue.openingHours)
+        : null;
 
     return Dismissible(
       key: ValueKey(venue.osmId),
@@ -88,19 +93,51 @@ class _FavoriteTile extends ConsumerWidget {
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child:
-              const Icon(Icons.sports_bar, color: Colors.white, size: 22),
+          child: Icon(_iconForVenueType(venue.venueType),
+              color: Colors.white, size: 22),
         ),
-        title: Text(venue.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: venue.address.isNotEmpty ? Text(venue.address) : null,
-        trailing: IconButton(
-          icon: const Icon(Icons.favorite, color: pubScoutCoral),
-          onPressed: () =>
-              ref.read(favoritesProvider.notifier).toggle(venue),
+        title: Text(venue.name,
+            style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(
+          [
+            venueTypeLabel(venue.venueType),
+            if (venue.address.isNotEmpty) venue.address,
+          ].join(' · '),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (oh != null)
+              Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: oh.isOpen ? pubScoutGreen : pubScoutCoral,
+                ),
+              ),
+            IconButton(
+              icon: const Icon(Icons.favorite, color: pubScoutCoral),
+              onPressed: () =>
+                  ref.read(favoritesProvider.notifier).toggle(venue),
+            ),
+          ],
         ),
         onTap: () => _showVenueDetail(context, venue),
       ),
     );
+  }
+
+  static IconData _iconForVenueType(String type) {
+    return switch (type) {
+      'bar' => Icons.local_bar,
+      'biergarten' => Icons.deck,
+      'nightclub' => Icons.nightlife,
+      _ => Icons.sports_bar,
+    };
   }
 
   void _showVenueDetail(BuildContext context, Venue venue) {

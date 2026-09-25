@@ -21,7 +21,7 @@ class OfflineBanner extends ConsumerWidget {
           Icon(Icons.cloud_off, size: 14, color: Colors.white),
           SizedBox(width: 6),
           Text(
-            'Offline — Daten aus dem Cache',
+            'Offline — Favoriten weiterhin verfügbar',
             style: TextStyle(color: Colors.white, fontSize: 12),
           ),
         ],

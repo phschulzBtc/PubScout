@@ -12,6 +12,7 @@ import '../core/constants.dart';
 import '../core/geo_utils.dart';
 import '../core/theme.dart';
 import '../models/venue.dart';
+import '../providers/connectivity_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/location_provider.dart';
 import '../providers/venue_provider.dart';
@@ -80,8 +81,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final venues = ref.watch(filteredVenueProvider);
+    var venues = ref.watch(filteredVenueProvider);
+    final isOnline = ref.watch(connectivityProvider);
     final userLocation = ref.watch(userLocationProvider);
+
+    // Offline fallback: show favorites on the map
+    if (!isOnline && (venues.value?.isEmpty ?? true)) {
+      final favs = ref.watch(favoritesProvider).value ?? [];
+      if (favs.isNotEmpty) {
+        venues = AsyncData(favs);
+      }
+    }
 
     if (!_initialLocationSet) {
       userLocation.whenData((location) {
