@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich Details zu einer Bar sehen wenn ich auf einen Marker tippe, damit ich Adresse, Aktivitäten und Öffnungszeiten erfahre.
 

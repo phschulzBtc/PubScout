@@ -1,0 +1,83 @@
+{
+  "@@locale": "de",
+
+  "appTitle": "PubScout",
+
+  "searchHint": "Ort oder Adresse suchen...",
+  "clearHistory": "Verlauf löschen",
+
+  "refresh": "Neu laden",
+  "favorites": "Favoriten",
+  "myLocation": "Mein Standort",
+  "searchRadius": "Suchradius",
+
+  "loadingVenues": "Venues laden...",
+  "retrying": "Erneuter Versuch...",
+  "errorLoading": "Fehler beim Laden: {error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "noVenuesFound": "Keine Venues gefunden",
+  "clearFilters": "Filter entfernen",
+  "nVenues": "{count} Venues",
+  "@nVenues": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "nFilters": "{count} ({filterCount} Filter)",
+  "@nFilters": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "filterCount": { "type": "int" }
+    }
+  },
+
+  "noFavoritesTitle": "Noch keine Favoriten",
+  "noFavoritesHint": "Tippe auf das Herz-Icon bei einem Venue,\num ihn als Favorit zu speichern.",
+  "errorGeneric": "Fehler: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "venueTypePub": "Kneipe",
+  "venueTypeBar": "Bar",
+  "venueTypeBiergarten": "Biergarten",
+  "venueTypeNightclub": "Nachtclub",
+
+  "accessible": "Barrierefrei",
+  "accessibleWithCount": "Barrierefrei ({count})",
+  "@accessibleWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "limitedAccessible": "Eingeschränkt barrierefrei",
+
+  "opened": "Geöffnet",
+  "closed": "Geschlossen",
+  "outdoorSeating": "Außenbereich",
+
+  "distance": "Entfernung",
+  "openingHours": "Öffnungszeiten",
+  "phone": "Telefon",
+  "website": "Website",
+
+  "planRoute": "Route planen",
+  "share": "Teilen",
+  "linkCopied": "Link in Zwischenablage kopiert",
+
+  "offlineBanner": "Offline — Favoriten weiterhin verfügbar",
+
+  "noVenuesWithFilters": "Keine Venues mit diesen Filtern gefunden",
+  "noVenuesInRadius": "Keine Venues im Umkreis von {distance}",
+  "@noVenuesInRadius": {
+    "placeholders": {
+      "distance": { "type": "String" }
+    }
+  }
+}

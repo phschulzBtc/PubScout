@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Entwickler möchte ich ein vollständiges Backend mit Datenbankmodellen für Venues und Activities, damit die API Daten speichern und abfragen kann.
 

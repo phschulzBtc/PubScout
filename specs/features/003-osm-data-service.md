@@ -1,6 +1,8 @@
 # Feature 003: OSM Data Service
 
 ## Status: done
+
+## Platform: both
 ## Owner: Dev A (Backend)
 
 ## User Story

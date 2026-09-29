@@ -1,6 +1,8 @@
 # Feature 008: Aktivitäts-Filter
 
 ## Status: done
+
+## Platform: both
 ## Owner: Dev B (Frontend)
 ## Depends on: 006, 007
 

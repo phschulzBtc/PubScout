@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich in der Venue-Liste auf einen Blick sehen ob es eine Kneipe, Bar, Biergarten oder Nachtclub ist.
 

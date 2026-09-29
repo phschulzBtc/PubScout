@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Entwickler möchte ich ein vollständig eingerichtetes Monorepo mit Backend und Frontend-Grundgerüst, damit ich Features spec-driven entwickeln kann.
 

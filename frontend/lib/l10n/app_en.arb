@@ -1,0 +1,52 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "PubScout",
+
+  "searchHint": "Search for a place or address...",
+  "clearHistory": "Clear history",
+
+  "refresh": "Refresh",
+  "favorites": "Favorites",
+  "myLocation": "My location",
+  "searchRadius": "Search radius",
+
+  "loadingVenues": "Loading venues...",
+  "retrying": "Retrying...",
+  "errorLoading": "Error loading: {error}",
+  "noVenuesFound": "No venues found",
+  "clearFilters": "Clear filters",
+  "nVenues": "{count} Venues",
+  "nFilters": "{count} ({filterCount} Filters)",
+
+  "noFavoritesTitle": "No favorites yet",
+  "noFavoritesHint": "Tap the heart icon on a venue\nto save it as a favorite.",
+  "errorGeneric": "Error: {error}",
+
+  "venueTypePub": "Pub",
+  "venueTypeBar": "Bar",
+  "venueTypeBiergarten": "Beer Garden",
+  "venueTypeNightclub": "Nightclub",
+
+  "accessible": "Wheelchair accessible",
+  "accessibleWithCount": "Accessible ({count})",
+  "limitedAccessible": "Limited accessibility",
+
+  "opened": "Open",
+  "closed": "Closed",
+  "outdoorSeating": "Outdoor seating",
+
+  "distance": "Distance",
+  "openingHours": "Opening hours",
+  "phone": "Phone",
+  "website": "Website",
+
+  "planRoute": "Get directions",
+  "share": "Share",
+  "linkCopied": "Link copied to clipboard",
+
+  "offlineBanner": "Offline — Favorites still available",
+
+  "noVenuesWithFilters": "No venues found with these filters",
+  "noVenuesInRadius": "No venues within {distance}"
+}

@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: web
+
 ## User Story
 Als Nutzer möchte ich die Web-App auf meinem Smartphone installieren können, damit ich sie wie eine native App verwenden kann.
 

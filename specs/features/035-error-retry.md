@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich dass die App bei einem Timeout automatisch nochmal versucht Daten zu laden, damit ich nicht manuell neu laden muss.
 

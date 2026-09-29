@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich in den Aktivitäts- und Venue-Typ-Filtern sehen, wie viele Treffer jeder Filter bringt, damit ich einschätzen kann ob sich ein Filter lohnt.
 

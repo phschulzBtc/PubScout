@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich nach einem Ort oder einer Adresse suchen können, damit ich Bars in einer bestimmten Gegend finden kann.
 

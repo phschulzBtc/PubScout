@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich dass Venues schon beim Verschieben der Karte vorgeladen werden, damit sie sofort sichtbar sind wenn ich aufhöre zu scrollen.
 

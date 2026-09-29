@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich Bars als Favoriten speichern können, damit ich sie schnell wiederfinden kann.
 

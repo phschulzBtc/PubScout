@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: mobile
+
 ## User Story
 Als mobiler Nutzer möchte ich die Karte durch Herunterziehen neu laden können, damit ich aktuelle Daten bekomme ohne die Karte verschieben zu müssen.
 

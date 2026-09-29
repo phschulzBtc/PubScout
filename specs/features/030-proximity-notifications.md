@@ -2,6 +2,8 @@
 
 ## Status: deferred (requires native mobile app, not feasible on Flutter Web)
 
+## Platform: mobile
+
 ## User Story
 Als Nutzer möchte ich benachrichtigt werden wenn ich in der Nähe einer Bar mit meiner Lieblingsaktivität bin, damit ich spontan vorbeischauen kann.
 

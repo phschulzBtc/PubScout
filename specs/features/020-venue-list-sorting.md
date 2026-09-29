@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich die Venue-Liste nach Entfernung zu meinem Standort sortiert sehen, damit ich die nächstgelegenen Bars zuerst finde.
 

@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich den Suchradius anpassen können, damit ich mehr oder weniger Ergebnisse in meiner Umgebung sehe.
 

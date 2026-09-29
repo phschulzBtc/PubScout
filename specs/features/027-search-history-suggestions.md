@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich frühere Suchen als Vorschläge sehen, damit ich schnell zu bekannten Orten zurückkehren kann.
 

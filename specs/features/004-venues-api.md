@@ -1,6 +1,8 @@
 # Feature 004: Venues API
 
 ## Status: done
+
+## Platform: both
 ## Owner: Dev A (Backend)
 ## Depends on: 003
 

@@ -2,6 +2,8 @@
 
 ## Status: deferred (requires backend database)
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich Bars bewerten und Kommentare hinterlassen können, damit andere Nutzer von meinen Erfahrungen profitieren.
 

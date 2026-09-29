@@ -1,6 +1,8 @@
 # Feature 006: Flutter Grundgerüst
 
 ## Status: done
+
+## Platform: both
 ## Owner: Dev B (Frontend)
 ## Depends on: API Contract aus 004, 005 (Mock-Daten bis Backend fertig)
 

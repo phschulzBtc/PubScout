@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich meine Favoriten auch ohne Internet sehen und dorthin navigieren können.
 

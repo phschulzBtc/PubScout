@@ -1,6 +1,8 @@
 # Feature 005: Activities API
 
 ## Status: done
+
+## Platform: both
 ## Owner: Dev A (Backend)
 ## Depends on: 003, 004
 

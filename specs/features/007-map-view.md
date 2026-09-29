@@ -1,6 +1,8 @@
 # Feature 007: Karten-Ansicht
 
 ## Status: done
+
+## Platform: both
 ## Owner: Dev B (Frontend)
 ## Depends on: 006
 

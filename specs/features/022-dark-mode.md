@@ -2,6 +2,8 @@
 
 ## Status: draft
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich einen Dark Mode nutzen können, damit die App abends in dunklen Bars angenehmer für die Augen ist.
 

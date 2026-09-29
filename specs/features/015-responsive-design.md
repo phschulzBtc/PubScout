@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich die App auf jedem Gerät optimal nutzen können, egal ob Desktop, Tablet oder Smartphone.
 

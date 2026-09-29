@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich bei leeren Suchergebnissen einen hilfreichen Hinweis sehen, damit ich weiß warum nichts angezeigt wird und was ich tun kann.
 

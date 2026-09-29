@@ -11,6 +11,10 @@ nix-shell -p ruff --run "ruff check --fix src/"  # Auto-fix
 ## Frontend (run from `frontend/`)
 ```bash
 flutter run -d chrome    # Web dev server
+flutter run -d android   # Android emulator/device
+flutter run -d ios       # iOS simulator (macOS only)
+flutter build apk --dart-define=BACKEND_URL=https://api.example.com  # Release APK
+flutter build ios --dart-define=BACKEND_URL=https://api.example.com  # Release iOS
 flutter test             # Unit/widget tests
 dart analyze             # Static analysis
 dart format .            # Format code

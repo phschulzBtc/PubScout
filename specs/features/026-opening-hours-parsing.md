@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich sehen ob eine Bar gerade geöffnet hat, damit ich nicht vor verschlossener Tür stehe.
 

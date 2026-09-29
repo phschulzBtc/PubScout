@@ -2,6 +2,8 @@
 
 ## Status: done
 
+## Platform: both
+
 ## User Story
 Als Nutzer möchte ich eine Bar per Link mit Freunden teilen können, damit sie direkt dorthin navigieren können.
 

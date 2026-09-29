@@ -1,5 +1,17 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 const String appName = 'PubScout';
-const String backendBaseUrl = 'http://localhost:8000';
+
+/// Backend URL — override via `--dart-define=BACKEND_URL=http://...`
+/// Defaults: web → localhost:8000, Android emulator → 10.0.2.2:8000
+const String _backendUrlOverride =
+    String.fromEnvironment('BACKEND_URL');
+
+final String backendBaseUrl = _backendUrlOverride.isNotEmpty
+    ? _backendUrlOverride
+    : kIsWeb
+        ? 'http://localhost:8000'
+        : 'http://10.0.2.2:8000';
 
 // The backend answers after at most ~30 s (Overpass query timeout 25 s + 5 s).
 // On web, Dio's connectTimeout runs until the response headers arrive
